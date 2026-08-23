@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GameHub Pro</title>
   <style>
-    /* ── CSS Variables (Light Mode Default) ── */
+    /* ─── CSS Variables (Light Mode Default) ─── */
     :root {
       --bg: #f4f6f8;
       --panel: #ffffff;
@@ -83,7 +83,7 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* ── Top Bar ── */
+    /* ─── Top Bar ─── */
     .topbar {
       background: var(--panel);
       border-bottom: 1px solid var(--border);
@@ -466,14 +466,13 @@
       users: JSON.parse(localStorage.getItem('gh_users') || '[]'),
       games: JSON.parse(localStorage.getItem('gh_games') || '[]'),
       scripts: JSON.parse(localStorage.getItem('gh_scripts') || '[]'),
-      scriptChats: JSON.parse(localStorage.getItem('gh_scriptChats') || '{}'), // { scriptId: [ {username, text, timestamp} ] }
+      scriptChats: JSON.parse(localStorage.getItem('gh_scriptChats') || '{}'),
       pendingGames: JSON.parse(localStorage.getItem('gh_pendingGames') || '[]'),
       pendingScripts: JSON.parse(localStorage.getItem('gh_pendingScripts') || '[]'),
       currentUser: JSON.parse(localStorage.getItem('gh_currentUser') || 'null'),
       settings: JSON.parse(localStorage.getItem('gh_settings') || '{"darkMode":false}')
     };
 
-    // Ensure admin exists
     if (!DB.users.some(u => u.username === 'admin')) {
       DB.users.push({ username: 'admin', password: 'admin123', role: 'admin', mutedUntil: 0, bannedUntil: 0 });
     }
@@ -495,7 +494,7 @@
     let attachedWindow = null;
     let dragData = null;
     let premadeScripts = [];
-    let selectedScriptId = null; // for chat
+    let selectedScriptId = null;
 
     // ─── DOM Elements ───
     const gameGrid = document.getElementById('gameGrid');
@@ -510,13 +509,44 @@
     const chatInput = document.getElementById('scriptChatInput');
 
     // ─── Initialize ───
-    function init() {
+    async function init() {
       applyDarkMode();
+      await loadLocalGames();
       renderGames();
       renderLibrary();
       renderWorkshop();
       renderAdmin();
       updateUserUI();
+    }
+
+    // ─── Load games from games.json ───
+    async function loadLocalGames() {
+      try {
+        const response = await fetch('games.json');
+        if (!response.ok) throw new Error('games.json not found');
+        const localGames = await response.json();
+        const existingIds = new Set(DB.games.map(g => g.id));
+        localGames.forEach(g => {
+          if (!existingIds.has(g.id)) {
+            DB.games.push({
+              id: g.id,
+              title: g.title,
+              description: g.description || '',
+              category: g.category || 'Uncategorized',
+              file: g.file || null,
+              html: null,
+              thumbnail: g.thumbnail || '',
+              approved: true,
+              views: 0,
+              author: 'system',
+              createdAt: Date.now()
+            });
+          }
+        });
+        saveDB();
+      } catch (err) {
+        console.warn('Could not load games.json, using only user-added games.', err);
+      }
     }
 
     // ─── Authentication ───
@@ -614,15 +644,15 @@
       const search = document.getElementById('searchInput').value.toLowerCase();
       const category = document.getElementById('categoryFilter').value;
       const sort = document.getElementById('sortFilter').value;
-      let filtered = DB.games.filter(g => g.approved); // only approved
+      let filtered = DB.games.filter(g => g.approved);
       filtered = filtered.filter(g => {
-        const matchSearch = g.title.toLowerCase().includes(search) || (g.description||'').toLowerCase().includes(search);
+        const matchSearch = g.title.toLowerCase().includes(search) || (g.description || '').toLowerCase().includes(search);
         const matchCat = category === 'all' || g.category === category;
         return matchSearch && matchCat;
       });
-      if (sort === 'popular') filtered.sort((a,b)=>(b.views||0)-(a.views||0));
-      else if (sort === 'newest') filtered.sort((a,b)=>b.createdAt - a.createdAt);
-      else if (sort === 'title') filtered.sort((a,b)=>a.title.localeCompare(b.title));
+      if (sort === 'popular') filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+      else if (sort === 'newest') filtered.sort((a, b) => b.createdAt - a.createdAt);
+      else if (sort === 'title') filtered.sort((a, b) => a.title.localeCompare(b.title));
 
       gameGrid.innerHTML = '';
       filtered.forEach(game => {
@@ -642,8 +672,8 @@
         card.addEventListener('click', () => launchGame(game));
         gameGrid.appendChild(card);
       });
-      // Update category filter
-      const categories = [...new Set(DB.games.filter(g=>g.approved).map(g => g.category).filter(Boolean))];
+
+      const categories = [...new Set(DB.games.filter(g => g.approved).map(g => g.category).filter(Boolean))];
       const catSelect = document.getElementById('categoryFilter');
       catSelect.innerHTML = '<option value="all">All Categories</option>';
       categories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
@@ -669,14 +699,21 @@
       });
     }
 
-    // ─── Launch Game ───
+    // ─── Launch Game (fix: handle both file and html) ───
     function launchGame(game) {
       currentGame = game;
       document.getElementById('gameTitle').textContent = game.title;
       game.views = (game.views || 0) + 1;
       saveDB();
       document.getElementById('gameOverlay').classList.add('open');
-      document.getElementById('gameFrame').src = game.html || '';
+      const frame = document.getElementById('gameFrame');
+      if (game.file) {
+        frame.src = game.file;
+      } else if (game.html) {
+        frame.srcdoc = game.html;
+      } else {
+        frame.src = 'about:blank';
+      }
       resetExecutor();
     }
 
@@ -735,7 +772,6 @@
     document.getElementById('btnRunScript').addEventListener('click', runScript);
     document.getElementById('btnClearConsole').addEventListener('click', () => document.getElementById('console').innerHTML = 'Console cleared.');
 
-    // Tab switching
     document.querySelectorAll('.executor-tabs button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.executor-tabs button').forEach(b => b.classList.remove('active'));
@@ -746,7 +782,6 @@
       });
     });
 
-    // Function Finder
     function findFunctions(targetWindow) {
       if (!targetWindow) return [];
       const keys = Object.keys(targetWindow);
@@ -865,7 +900,7 @@
           author: currentUser.username,
           approved: false,
           createdAt: Date.now(),
-          image: '' // optional
+          image: ''
         });
         saveDB();
         renderAdmin();
@@ -987,6 +1022,7 @@
         saveDB();
         renderAdmin();
         renderGames();
+        renderLibrary();
       }
     };
     window.deleteGame = function(id) {
