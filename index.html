@@ -403,7 +403,8 @@
   <div class="modal" id="authModal">
     <div class="modal-box">
       <h3 id="authTitle">Login</h3>
-      <input type="text" id="authUsername" placeholder="Username" />
+      <input type="email" id="authEmail" placeholder="Email" />
+      <input type="text" id="authUsername" placeholder="Username (for registration)" style="display:none;" />
       <input type="password" id="authPassword" placeholder="Password" />
       <div class="modal-actions">
         <button id="btnAuthCancel">Cancel</button>
@@ -495,10 +496,11 @@
       query, 
       where,
       serverTimestamp,
-      getDoc
+      getDoc,
+      setDoc
     } from "firebase/firestore";
 
-    // ----- 2. YOUR FIREBASE CONFIG (from earlier) -----
+    // ----- 2. YOUR FIREBASE CONFIG -----
     const firebaseConfig = {
       apiKey: "AIzaSyCyux8wAnKs_R8AKTICungUQUI0ZtawCco",
       authDomain: "html-executor-27274.firebaseapp.com",
@@ -516,12 +518,12 @@
     const db = getFirestore(app);
 
     // ----- 3. APPLICATION STATE -----
-    let currentUser = null;          // will be set by onAuthStateChanged
+    let currentUser = null;          // { uid, email, username, role }
     let currentGame = null;
     let attachedWindow = null;
     let dragData = null;
     let selectedScriptId = null;
-    let allGames = [];              // all approved games (reactive)
+    let allGames = [];
     let allPendingGames = [];
     let allScripts = [];
     let allPendingScripts = [];
@@ -538,8 +540,7 @@
     const chatMessages = document.getElementById('scriptChatMessages');
     const chatInput = document.getElementById('scriptChatInput');
 
-    // ----- 5. AUTHENTICATION (Firebase) -----
-    // Login / Register buttons
+    // ----- 5. AUTHENTICATION (with Email + Username) -----
     btnLogin.addEventListener('click', () => openAuthModal('login'));
     btnLogout.addEventListener('click', async () => {
       await signOut(auth);
@@ -550,74 +551,114 @@
       const title = document.getElementById('authTitle');
       const submitBtn = document.getElementById('btnAuthSubmit');
       const switchBtn = document.getElementById('btnAuthSwitch');
+      const emailField = document.getElementById('authEmail');
+      const usernameField = document.getElementById('authUsername');
+
       if (mode === 'login') {
         title.textContent = 'Login';
         submitBtn.textContent = 'Login';
         switchBtn.textContent = 'Register';
+        usernameField.style.display = 'none'; // hide username on login
+        emailField.placeholder = 'Email';
       } else {
         title.textContent = 'Register';
         submitBtn.textContent = 'Register';
         switchBtn.textContent = 'Login';
+        usernameField.style.display = 'block'; // show username on register
+        usernameField.placeholder = 'Choose a Username';
+        emailField.placeholder = 'Email';
       }
       modal.classList.add('open');
-      document.getElementById('authUsername').value = '';
+      emailField.value = '';
+      usernameField.value = '';
       document.getElementById('authPassword').value = '';
       submitBtn.onclick = () => handleAuth(mode);
       switchBtn.onclick = () => openAuthModal(mode === 'login' ? 'register' : 'login');
       document.getElementById('btnAuthCancel').onclick = () => modal.classList.remove('open');
     }
 
-    function handleAuth(mode) {
+    async function handleAuth(mode) {
+      const email = document.getElementById('authEmail').value.trim();
       const username = document.getElementById('authUsername').value.trim();
       const password = document.getElementById('authPassword').value;
-      if (!username || !password) return alert('Please fill all fields.');
 
-      if (mode === 'register') {
-        createUserWithEmailAndPassword(auth, username, password)
-          .then(() => {
-            // Also store the username in Firestore for display
-            return addDoc(collection(db, 'users'), { uid: auth.currentUser.uid, username, role: 'user' });
-          })
-          .then(() => {
-            alert('Account created! You are now logged in.');
-            document.getElementById('authModal').classList.remove('open');
-          })
-          .catch((err) => alert('Registration failed: ' + err.message));
-      } else {
-        signInWithEmailAndPassword(auth, username, password)
-          .then(() => {
-            document.getElementById('authModal').classList.remove('open');
-          })
-          .catch((err) => alert('Login failed: ' + err.message));
+      if (!email || !password) return alert('Email and Password are required.');
+      if (mode === 'register' && !username) return alert('Please choose a Username.');
+
+      try {
+        if (mode === 'register') {
+          // 1. Create Firebase Auth user
+          const userCred = await createUserWithEmailAndPassword(auth, email, password);
+          const uid = userCred.user.uid;
+
+          // 2. Store user profile in Firestore
+          await setDoc(doc(db, 'users', uid), {
+            username: username,
+            email: email,
+            role: (email === 'vodlan.oskar@gmail.com') ? 'admin' : 'user', // 👈 YOUR ADMIN EMAIL
+            createdAt: serverTimestamp()
+          });
+
+          alert('Account created! You are now logged in.');
+          document.getElementById('authModal').classList.remove('open');
+        } else {
+          // Login
+          await signInWithEmailAndPassword(auth, email, password);
+          document.getElementById('authModal').classList.remove('open');
+        }
+      } catch (err) {
+        alert('Authentication failed: ' + err.message);
       }
     }
 
-    // Auth state listener
+    // ----- 6. AUTH STATE (fetch username & role from Firestore) -----
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        currentUser = { uid: user.uid, email: user.email };
-        // Fetch role from Firestore
-        const q = query(collection(db, 'users'), where('uid', '==', user.uid));
-        const snapshot = await getDoc(q); // Actually getDocs
-        // Since we use getDoc incorrectly, let's fix: we need getDocs
-        // But we'll simplify: we can just check if email is admin
-        // For now, we check if email is admin@admin.com
-        if (user.email === 'admin@admin.com') {
-          currentUser.role = 'admin';
-        } else {
-          currentUser.role = 'user';
+        // Fetch user profile from Firestore
+        let userData = null;
+        try {
+          const docSnap = await getDoc(doc(db, 'users', user.uid));
+          if (docSnap.exists()) {
+            userData = docSnap.data();
+          }
+        } catch (e) { console.warn('Could not fetch user doc', e); }
+
+        // Fallback / force admin for vodlan.oskar@gmail.com
+        let role = userData?.role || 'user';
+        let username = userData?.username || user.email.split('@')[0];
+
+        // 🔥 FORCE ADMIN FOR THIS EMAIL
+        if (user.email === 'vodlan.oskar@gmail.com') {
+          role = 'admin';
+          // Also update the Firestore doc to keep it in sync
+          try {
+            await setDoc(doc(db, 'users', user.uid), { 
+              username: username, 
+              email: user.email, 
+              role: 'admin' 
+            }, { merge: true });
+          } catch (e) { /* ignore */ }
         }
-        userName.textContent = user.email;
+
+        currentUser = {
+          uid: user.uid,
+          email: user.email,
+          username: username,
+          role: role
+        };
+
+        // Update UI
+        userName.textContent = currentUser.username;
         btnLogin.style.display = 'none';
         btnLogout.style.display = 'block';
-        adminNavBtn.style.display = currentUser.role === 'admin' ? 'block' : 'none';
+        adminNavBtn.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
+
       } else {
         currentUser = null;
         userName.textContent = 'Guest';
         btnLogin.style.display = 'block';
         btnLogout.style.display = 'none';
         adminNavBtn.style.display = 'none';
-        // Clear admin panel
         adminContent.innerHTML = '<p>Please log in to manage.</p>';
       }
       // Re-render admin panel if visible
@@ -626,53 +667,41 @@
       }
     });
 
-    // ----- 6. REALTIME GAMES (Firestore) -----
-    // Listen to approved games
+    // ----- 7. REALTIME FIRESTORE LISTENERS (games, scripts) -----
+    // Approved games
     const gamesQuery = query(collection(db, 'games'), where('approved', '==', true));
     onSnapshot(gamesQuery, (snapshot) => {
       allGames = [];
-      snapshot.forEach(doc => {
-        allGames.push({ id: doc.id, ...doc.data() });
-      });
+      snapshot.forEach(doc => allGames.push({ id: doc.id, ...doc.data() }));
       renderGames();
       renderLibrary();
     });
 
-    // Listen to pending games (for admin)
+    // Pending games
     const pendingQuery = query(collection(db, 'games'), where('approved', '==', false));
     onSnapshot(pendingQuery, (snapshot) => {
       allPendingGames = [];
-      snapshot.forEach(doc => {
-        allPendingGames.push({ id: doc.id, ...doc.data() });
-      });
-      if (currentUser && currentUser.role === 'admin') {
-        renderAdmin();
-      }
+      snapshot.forEach(doc => allPendingGames.push({ id: doc.id, ...doc.data() }));
+      if (currentUser?.role === 'admin') renderAdmin();
     });
 
-    // Listen to approved scripts
+    // Approved scripts
     const scriptsQuery = query(collection(db, 'scripts'), where('approved', '==', true));
     onSnapshot(scriptsQuery, (snapshot) => {
       allScripts = [];
-      snapshot.forEach(doc => {
-        allScripts.push({ id: doc.id, ...doc.data() });
-      });
+      snapshot.forEach(doc => allScripts.push({ id: doc.id, ...doc.data() }));
       renderWorkshop();
     });
 
-    // Listen to pending scripts
+    // Pending scripts
     const pendingScriptsQuery = query(collection(db, 'scripts'), where('approved', '==', false));
     onSnapshot(pendingScriptsQuery, (snapshot) => {
       allPendingScripts = [];
-      snapshot.forEach(doc => {
-        allPendingScripts.push({ id: doc.id, ...doc.data() });
-      });
-      if (currentUser && currentUser.role === 'admin') {
-        renderAdmin();
-      }
+      snapshot.forEach(doc => allPendingScripts.push({ id: doc.id, ...doc.data() }));
+      if (currentUser?.role === 'admin') renderAdmin();
     });
 
-    // ----- 7. RENDER FUNCTIONS -----
+    // ----- 8. RENDER FUNCTIONS (games, library, workshop, admin) -----
     function renderGames() {
       const search = document.getElementById('searchInput').value.toLowerCase();
       const category = document.getElementById('categoryFilter').value;
@@ -708,7 +737,6 @@
         gameGrid.appendChild(card);
       });
 
-      // Update category filter
       const categories = [...new Set(allGames.filter(g => g.approved).map(g => g.category).filter(Boolean))];
       const catSelect = document.getElementById('categoryFilter');
       catSelect.innerHTML = '<option value="all">All Categories</option>';
@@ -784,41 +812,24 @@
       adminContent.innerHTML = html;
     }
 
-    // Expose admin functions to global scope (for onclick)
-    window.approveGame = async function(id) {
-      await updateDoc(doc(db, 'games', id), { approved: true });
-    };
-    window.deleteGame = async function(id) {
-      await deleteDoc(doc(db, 'games', id));
-    };
-    window.previewGame = function(id) {
-      const game = allPendingGames.find(g => g.id === id);
-      if (game) launchGame(game);
-    };
-    window.approveScript = async function(id) {
-      await updateDoc(doc(db, 'scripts', id), { approved: true });
-    };
-    window.deleteScript = async function(id) {
-      await deleteDoc(doc(db, 'scripts', id));
-    };
+    // Expose admin functions to global
+    window.approveGame = async (id) => { await updateDoc(doc(db, 'games', id), { approved: true }); };
+    window.deleteGame = async (id) => { await deleteDoc(doc(db, 'games', id)); };
+    window.previewGame = (id) => { const game = allPendingGames.find(g => g.id === id); if (game) launchGame(game); };
+    window.approveScript = async (id) => { await updateDoc(doc(db, 'scripts', id), { approved: true }); };
+    window.deleteScript = async (id) => { await deleteDoc(doc(db, 'scripts', id)); };
 
-    // ----- 8. GAME LAUNCH -----
+    // ----- 9. GAME LAUNCH & EXECUTOR (same as before) -----
     function launchGame(game) {
       currentGame = game;
       document.getElementById('gameTitle').textContent = game.title;
-      // Increment views in Firestore
       const docRef = doc(db, 'games', game.id);
       updateDoc(docRef, { views: (game.views || 0) + 1 }).catch(console.warn);
-
       document.getElementById('gameOverlay').classList.add('open');
       const frame = document.getElementById('gameFrame');
-      if (game.fileUrl) {
-        frame.src = game.fileUrl;
-      } else if (game.htmlContent) {
-        frame.srcdoc = game.htmlContent;
-      } else {
-        frame.src = 'about:blank';
-      }
+      if (game.fileUrl) frame.src = game.fileUrl;
+      else if (game.htmlContent) frame.srcdoc = game.htmlContent;
+      else frame.src = 'about:blank';
       resetExecutor();
     }
 
@@ -830,7 +841,6 @@
       document.getElementById('executorStatus').textContent = 'Not attached';
     }
 
-    // ----- 9. EXECUTOR (unchanged logic) -----
     function resetExecutor() {
       document.getElementById('executorWindow').classList.remove('open');
       attachedWindow = null;
@@ -954,7 +964,7 @@
       if (html) navigator.clipboard.writeText(html);
     });
 
-    // ----- 10. UPLOAD GAME (Firestore) -----
+    // ----- 10. UPLOAD GAME -----
     document.getElementById('btnUploadGame').addEventListener('click', () => {
       if (!currentUser) return alert('Login required.');
       document.getElementById('uploadModal').classList.add('open');
@@ -980,7 +990,7 @@
           thumbnailUrl = base64;
         }
 
-        const gameData = {
+        await addDoc(collection(db, 'games'), {
           title,
           description: desc,
           category,
@@ -988,10 +998,9 @@
           thumbnail: thumbnailUrl,
           approved: false,
           views: 0,
-          author: currentUser.email || currentUser.uid,
+          author: currentUser.username || currentUser.email,
           createdAt: serverTimestamp()
-        };
-        await addDoc(collection(db, 'games'), gameData);
+        });
         alert('Submitted for review.');
         document.getElementById('uploadModal').classList.remove('open');
       };
@@ -1007,7 +1016,7 @@
         await addDoc(collection(db, 'scripts'), {
           title,
           code,
-          author: currentUser.email || currentUser.uid,
+          author: currentUser.username || currentUser.email,
           approved: false,
           createdAt: serverTimestamp()
         });
@@ -1015,7 +1024,7 @@
       }
     });
 
-    // ----- 12. SCRIPT MODAL & CHAT (simplified - chat stored in Firestore subcollection) -----
+    // ----- 12. SCRIPT MODAL & CHAT (Firestore subcollection) -----
     async function openScriptModal(script) {
       selectedScriptId = script.id;
       document.getElementById('scriptModalTitle').textContent = script.title;
@@ -1023,10 +1032,10 @@
       document.getElementById('scriptModal').classList.add('open');
       document.getElementById('btnCopyScriptModal').onclick = () => navigator.clipboard.writeText(script.code);
       document.getElementById('btnScriptClose').onclick = () => document.getElementById('scriptModal').classList.remove('open');
-      await loadScriptChat(script.id);
+      loadScriptChat(script.id);
     }
 
-    async function loadScriptChat(scriptId) {
+    function loadScriptChat(scriptId) {
       const q = query(collection(db, 'scripts', scriptId, 'chats'));
       onSnapshot(q, (snapshot) => {
         chatMessages.innerHTML = '';
@@ -1035,17 +1044,6 @@
           const div = document.createElement('div');
           div.className = 'chat-message';
           div.innerHTML = `<span class="user">${msg.username}:</span> <span>${msg.text}</span> <span class="time">${new Date(msg.timestamp?.toMillis?.() || Date.now()).toLocaleTimeString()}</span>`;
-          if (currentUser && currentUser.role === 'admin') {
-            const muteBtn = document.createElement('button');
-            muteBtn.textContent = 'Mute 5m';
-            // For simplicity, we won't implement mute/ban in this version
-            muteBtn.disabled = true;
-            const banBtn = document.createElement('button');
-            banBtn.textContent = 'Ban';
-            banBtn.disabled = true;
-            div.appendChild(muteBtn);
-            div.appendChild(banBtn);
-          }
           chatMessages.appendChild(div);
         });
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -1057,14 +1055,14 @@
       const text = chatInput.value.trim();
       if (!text || !selectedScriptId) return;
       await addDoc(collection(db, 'scripts', selectedScriptId, 'chats'), {
-        username: currentUser.email || currentUser.uid,
+        username: currentUser.username || currentUser.email,
         text,
         timestamp: serverTimestamp()
       });
       chatInput.value = '';
     });
 
-    // ----- 13. CREATE/TEST PAGE (unchanged) -----
+    // ----- 13. CREATE/TEST PAGE -----
     const htmlEditor = document.getElementById('htmlEditor');
     const previewFrame = document.getElementById('previewFrame');
     htmlEditor.addEventListener('input', () => {
@@ -1113,7 +1111,7 @@
         thumbnail: thumbnailUrl,
         approved: false,
         views: 0,
-        author: currentUser.email || currentUser.uid,
+        author: currentUser.username || currentUser.email,
         createdAt: serverTimestamp()
       });
       alert('Submitted for review.');
@@ -1175,7 +1173,8 @@
       document.removeEventListener('mouseup', onDragEnd);
     }
 
-    console.log('🔥 GameHub Pro connected to Firebase! (100% free)');
+    console.log('🔥 GameHub Pro connected to Firebase!');
+    console.log('👑 Admin: vodlan.oskar@gmail.com');
   </script>
 </body>
 </html>
