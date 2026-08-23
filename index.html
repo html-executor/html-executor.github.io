@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GameHub Pro</title>
   <style>
-    /* ─── CSS Variables ─── */
+    /* ── CSS Variables (Light Mode Default) ── */
     :root {
       --bg: #f4f6f8;
       --panel: #ffffff;
@@ -83,7 +83,7 @@
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* ─── Top Bar ─── */
+    /* ── Top Bar ── */
     .topbar {
       background: var(--panel);
       border-bottom: 1px solid var(--border);
@@ -99,7 +99,7 @@
     .topbar-right { display: flex; gap: 10px; align-items: center; }
     .user-badge { display: flex; align-items: center; gap: 8px; cursor: pointer; }
 
-    /* ─── Layout ─── */
+    /* ── Layout ── */
     .app-body { flex:1; display:flex; overflow:hidden; }
     .sidebar {
       width: 200px;
@@ -130,7 +130,7 @@
     }
     .page-header h1 { font-size:22px; font-weight:600; }
 
-    /* ─── Game Grid ─── */
+    /* ── Game Grid ── */
     .game-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap:16px; }
     .game-card {
       background: var(--panel);
@@ -153,12 +153,12 @@
       position:absolute; top:8px; right:8px; background:var(--success); color:white; font-size:10px; padding:2px 8px; border-radius:12px; font-weight:600;
     }
 
-    /* ─── Filter Bar ─── */
+    /* ── Filter Bar ── */
     .filter-bar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
     .filter-bar input, .filter-bar select { width:auto; }
     .filter-bar .search { flex:1; min-width:200px; }
 
-    /* ─── Workshop ─── */
+    /* ── Workshop ── */
     .workshop-list { display:flex; flex-direction:column; gap:10px; }
     .script-item {
       background: var(--panel);
@@ -174,14 +174,14 @@
     .script-item .info .title { font-weight:600; }
     .script-item .info .meta { font-size:12px; color:var(--muted); }
 
-    /* ─── Create/Test Editor ─── */
+    /* ── Create/Test Editor ── */
     .editor-container { display:grid; grid-template-columns:1fr 1fr; gap:16px; height:70vh; }
     .editor-pane, .preview-pane { display:flex; flex-direction:column; gap:8px; }
     .editor-pane textarea { flex:1; min-height:200px; }
     .preview-pane iframe { flex:1; border:1px solid var(--border); border-radius:var(--radius); background:white; }
     .console-output { background:var(--executor-console-bg); color:var(--executor-console-text); font-family:monospace; font-size:12px; padding:8px; border-radius:var(--radius); min-height:80px; max-height:150px; overflow-y:auto; white-space:pre-wrap; }
 
-    /* ─── Game Overlay ─── */
+    /* ── Game Overlay ── */
     .game-overlay {
       position:fixed; inset:0; background:var(--overlay-bg); z-index:500; display:none; flex-direction:column;
     }
@@ -193,7 +193,7 @@
     .game-iframe-container { flex:1; position:relative; }
     .game-iframe-container iframe { width:100%; height:100%; border:none; background:white; }
 
-    /* ─── Executor Window ─── */
+    /* ── Executor Window ── */
     .executor-window {
       position:fixed; top:60px; right:20px; width:450px; max-width:90vw; max-height:80vh;
       background:var(--executor-bg); border:1px solid var(--border); border-radius:var(--radius);
@@ -212,7 +212,7 @@
     .tab-content { display:none; }
     .tab-content.active { display:block; }
 
-    /* ─── Modals ─── */
+    /* ── Modals ── */
     .modal { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:700; }
     .modal.open { display:flex; }
     .modal-box { background:var(--panel); border-radius:var(--radius); padding:24px; max-width:500px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.2); }
@@ -220,7 +220,7 @@
     .modal-box p { color:var(--muted); margin-bottom:16px; line-height:1.5; }
     .modal-actions { display:flex; justify-content:flex-end; gap:8px; }
 
-    /* ─── Chat ─── */
+    /* ── Chat (per script) ── */
     .chat-container { display:flex; flex-direction:column; height:300px; }
     .chat-messages { flex:1; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius); padding:8px; margin-bottom:8px; }
     .chat-message { margin-bottom:6px; }
@@ -291,17 +291,8 @@
         </div>
         <div class="filter-bar">
           <input type="text" id="workshopSearch" class="search" placeholder="Search scripts..." />
-          <select id="workshopGameFilter"><option value="all">All Games</option></select>
         </div>
         <div class="workshop-list" id="workshopList"></div>
-        <div class="page-header" style="margin-top:20px;"><h2>Chat</h2></div>
-        <div class="chat-container">
-          <div class="chat-messages" id="chatMessages"></div>
-          <div class="chat-input">
-            <input type="text" id="chatInput" placeholder="Type a message..." />
-            <button class="primary" id="btnSendChat">Send</button>
-          </div>
-        </div>
       </div>
 
       <!-- Create/Test Page -->
@@ -442,12 +433,20 @@
 
   <!-- Script Detail Modal -->
   <div class="modal" id="scriptModal">
-    <div class="modal-box">
+    <div class="modal-box" style="max-width:600px;">
       <h3 id="scriptModalTitle"></h3>
       <pre id="scriptModalCode" style="white-space:pre-wrap; background:var(--bg); padding:10px; border-radius:var(--radius); max-height:300px; overflow-y:auto;"></pre>
-      <div class="modal-actions">
+      <div class="modal-actions" style="margin-bottom:10px;">
         <button id="btnCopyScriptModal">Copy</button>
         <button id="btnScriptClose">Close</button>
+      </div>
+      <!-- Chat for this script -->
+      <div class="chat-container" style="height:200px;">
+        <div class="chat-messages" id="scriptChatMessages"></div>
+        <div class="chat-input">
+          <input type="text" id="scriptChatInput" placeholder="Type feedback..." />
+          <button class="primary" id="btnSendScriptChat">Send</button>
+        </div>
       </div>
     </div>
   </div>
@@ -467,23 +466,27 @@
       users: JSON.parse(localStorage.getItem('gh_users') || '[]'),
       games: JSON.parse(localStorage.getItem('gh_games') || '[]'),
       scripts: JSON.parse(localStorage.getItem('gh_scripts') || '[]'),
-      chat: JSON.parse(localStorage.getItem('gh_chat') || '[]'),
+      scriptChats: JSON.parse(localStorage.getItem('gh_scriptChats') || '{}'), // { scriptId: [ {username, text, timestamp} ] }
       pendingGames: JSON.parse(localStorage.getItem('gh_pendingGames') || '[]'),
       pendingScripts: JSON.parse(localStorage.getItem('gh_pendingScripts') || '[]'),
       currentUser: JSON.parse(localStorage.getItem('gh_currentUser') || 'null'),
+      settings: JSON.parse(localStorage.getItem('gh_settings') || '{"darkMode":false}')
     };
 
-    const ADMIN_USER = { username: 'admin', password: 'admin123', role: 'admin' };
-    if (!DB.users.some(u => u.username === 'admin')) DB.users.push(ADMIN_USER);
+    // Ensure admin exists
+    if (!DB.users.some(u => u.username === 'admin')) {
+      DB.users.push({ username: 'admin', password: 'admin123', role: 'admin', mutedUntil: 0, bannedUntil: 0 });
+    }
 
     function saveDB() {
       localStorage.setItem('gh_users', JSON.stringify(DB.users));
       localStorage.setItem('gh_games', JSON.stringify(DB.games));
       localStorage.setItem('gh_scripts', JSON.stringify(DB.scripts));
-      localStorage.setItem('gh_chat', JSON.stringify(DB.chat));
+      localStorage.setItem('gh_scriptChats', JSON.stringify(DB.scriptChats));
       localStorage.setItem('gh_pendingGames', JSON.stringify(DB.pendingGames));
       localStorage.setItem('gh_pendingScripts', JSON.stringify(DB.pendingScripts));
       localStorage.setItem('gh_currentUser', JSON.stringify(DB.currentUser));
+      localStorage.setItem('gh_settings', JSON.stringify(DB.settings));
     }
 
     // ─── State ───
@@ -492,19 +495,19 @@
     let attachedWindow = null;
     let dragData = null;
     let premadeScripts = [];
+    let selectedScriptId = null; // for chat
 
     // ─── DOM Elements ───
     const gameGrid = document.getElementById('gameGrid');
     const libraryContent = document.getElementById('libraryContent');
     const workshopList = document.getElementById('workshopList');
-    const chatMessages = document.getElementById('chatMessages');
-    const chatInput = document.getElementById('chatInput');
     const adminContent = document.getElementById('adminContent');
     const adminNavBtn = document.getElementById('adminNavBtn');
-    const userBadge = document.getElementById('userBadge');
     const userName = document.getElementById('userName');
     const btnLogin = document.getElementById('btnLogin');
     const btnLogout = document.getElementById('btnLogout');
+    const chatMessages = document.getElementById('scriptChatMessages');
+    const chatInput = document.getElementById('scriptChatInput');
 
     // ─── Initialize ───
     function init() {
@@ -514,7 +517,6 @@
       renderWorkshop();
       renderAdmin();
       updateUserUI();
-      loadChat();
     }
 
     // ─── Authentication ───
@@ -523,8 +525,7 @@
         userName.textContent = currentUser.username;
         btnLogin.style.display = 'none';
         btnLogout.style.display = 'block';
-        if (currentUser.role === 'admin') adminNavBtn.style.display = 'block';
-        else adminNavBtn.style.display = 'none';
+        adminNavBtn.style.display = currentUser.role === 'admin' ? 'block' : 'none';
       } else {
         userName.textContent = 'Guest';
         btnLogin.style.display = 'block';
@@ -580,7 +581,6 @@
       } else {
         const user = DB.users.find(u => u.username === username && u.password === password);
         if (!user) return alert('Invalid credentials.');
-        // Check ban
         if (user.bannedUntil && Date.now() < user.bannedUntil) {
           return alert('You are banned until ' + new Date(user.bannedUntil).toLocaleString());
         }
@@ -595,8 +595,7 @@
 
     // ─── Dark Mode ───
     function applyDarkMode() {
-      const settings = JSON.parse(localStorage.getItem('gh_settings') || '{"darkMode":false}');
-      if (settings.darkMode) {
+      if (DB.settings.darkMode) {
         document.body.classList.add('dark-mode');
         document.getElementById('darkModeToggle').textContent = 'Light';
       } else {
@@ -605,9 +604,8 @@
       }
     }
     document.getElementById('darkModeToggle').addEventListener('click', () => {
-      const settings = JSON.parse(localStorage.getItem('gh_settings') || '{"darkMode":false}');
-      settings.darkMode = !settings.darkMode;
-      localStorage.setItem('gh_settings', JSON.stringify(settings));
+      DB.settings.darkMode = !DB.settings.darkMode;
+      saveDB();
       applyDarkMode();
     });
 
@@ -616,7 +614,8 @@
       const search = document.getElementById('searchInput').value.toLowerCase();
       const category = document.getElementById('categoryFilter').value;
       const sort = document.getElementById('sortFilter').value;
-      let filtered = DB.games.filter(g => {
+      let filtered = DB.games.filter(g => g.approved); // only approved
+      filtered = filtered.filter(g => {
         const matchSearch = g.title.toLowerCase().includes(search) || (g.description||'').toLowerCase().includes(search);
         const matchCat = category === 'all' || g.category === category;
         return matchSearch && matchCat;
@@ -631,7 +630,7 @@
         card.className = 'game-card';
         card.innerHTML = `
           <img src="${game.thumbnail || ''}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22112%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E'">
-          <div class="badge">${game.approved ? 'FREE' : 'PENDING'}</div>
+          <div class="badge">FREE</div>
           <div class="info">
             <h3>${game.title}</h3>
             <div class="meta">
@@ -644,21 +643,21 @@
         gameGrid.appendChild(card);
       });
       // Update category filter
-      const categories = [...new Set(DB.games.map(g => g.category).filter(Boolean))];
+      const categories = [...new Set(DB.games.filter(g=>g.approved).map(g => g.category).filter(Boolean))];
       const catSelect = document.getElementById('categoryFilter');
       catSelect.innerHTML = '<option value="all">All Categories</option>';
       categories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
     }
 
     function renderLibrary() {
-      const owned = DB.games.filter(g => g.approved).slice(0, 5); // simplistic
-      if (owned.length === 0) {
-        libraryContent.innerHTML = '<p style="color:var(--muted);">No games yet. Browse Games tab.</p>';
+      const approvedGames = DB.games.filter(g => g.approved);
+      if (approvedGames.length === 0) {
+        libraryContent.innerHTML = '<p style="color:var(--muted);">No games available.</p>';
         return;
       }
       libraryContent.innerHTML = '<div class="game-grid"></div>';
       const grid = libraryContent.querySelector('.game-grid');
-      owned.forEach(game => {
+      approvedGames.forEach(game => {
         const card = document.createElement('div');
         card.className = 'game-card';
         card.innerHTML = `
@@ -777,7 +776,6 @@
       });
     });
 
-    // Premade scripts (simplified)
     function generatePremadeScripts(targetWindow) {
       const scripts = [];
       const vars = ['coins','health','score','lives','money'];
@@ -801,14 +799,12 @@
       });
     }
 
-    // Live Spy & Secrets & HTML (stubs)
     function setupLiveSpy(targetWindow) {
-      // Simplified: just log to liveConsole
       document.getElementById('liveConsole').innerHTML = 'Live spy active.';
     }
+
     document.getElementById('btnScanSecrets').addEventListener('click', () => {
       document.getElementById('secretsConsole').innerHTML = 'Scanning...';
-      // Simplified scan
       if (attachedWindow) {
         const html = attachedWindow.document.documentElement.outerHTML;
         const codes = html.match(/\b\d{4,8}\b/g) || [];
@@ -869,7 +865,7 @@
           author: currentUser.username,
           approved: false,
           createdAt: Date.now(),
-          image: ''
+          image: '' // optional
         });
         saveDB();
         renderAdmin();
@@ -899,17 +895,19 @@
     }
 
     function openScriptModal(script) {
+      selectedScriptId = script.id;
       document.getElementById('scriptModalTitle').textContent = script.title;
       document.getElementById('scriptModalCode').textContent = script.code;
       document.getElementById('scriptModal').classList.add('open');
       document.getElementById('btnCopyScriptModal').onclick = () => navigator.clipboard.writeText(script.code);
       document.getElementById('btnScriptClose').onclick = () => document.getElementById('scriptModal').classList.remove('open');
+      loadScriptChat(script.id);
     }
 
-    // ─── Chat ───
-    function loadChat() {
+    function loadScriptChat(scriptId) {
+      const messages = DB.scriptChats[scriptId] || [];
       chatMessages.innerHTML = '';
-      DB.chat.forEach(msg => {
+      messages.forEach(msg => {
         const div = document.createElement('div');
         div.className = 'chat-message';
         div.innerHTML = `<span class="user">${msg.username}:</span> <span>${msg.text}</span> <span class="time">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
@@ -937,17 +935,19 @@
       alert(`${username} ${action} for ${duration === Infinity ? 'forever' : duration/1000 + 's'}`);
     }
 
-    document.getElementById('btnSendChat').addEventListener('click', () => {
+    document.getElementById('btnSendScriptChat').addEventListener('click', () => {
       if (!currentUser) return alert('Login required.');
       const user = DB.users.find(u => u.username === currentUser.username);
       if (user.mutedUntil && Date.now() < user.mutedUntil) return alert('You are muted.');
       if (user.bannedUntil && Date.now() < user.bannedUntil) return alert('You are banned.');
       const text = chatInput.value.trim();
       if (!text) return;
-      DB.chat.push({ username: currentUser.username, text, timestamp: Date.now() });
+      if (!selectedScriptId) return;
+      if (!DB.scriptChats[selectedScriptId]) DB.scriptChats[selectedScriptId] = [];
+      DB.scriptChats[selectedScriptId].push({ username: currentUser.username, text, timestamp: Date.now() });
       saveDB();
       chatInput.value = '';
-      loadChat();
+      loadScriptChat(selectedScriptId);
     });
 
     // ─── Admin Panel ───
