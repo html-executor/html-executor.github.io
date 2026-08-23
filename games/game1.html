@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>⛁ panel · hidden</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0b0d17;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+        .panel {
+            background: rgba(14, 18, 34, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 24px;
+            padding: 32px 28px 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+        .header .icon {
+            font-size: 28px;
+            filter: drop-shadow(0 0 10px rgba(100, 200, 255, 0.15));
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.7);
+            text-shadow: 0 0 30px rgba(100, 200, 255, 0.05);
+        }
+        .sub {
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+            padding-left: 4px;
+            border-left: 2px solid rgba(255, 255, 255, 0.04);
+            padding-left: 14px;
+        }
+        .sub span {
+            color: rgba(255, 255, 255, 0.25);
+        }
+        .inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+        .inputs input {
+            width: 58px;
+            height: 68px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            color: #fff;
+            font-size: 30px;
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+            transition: 0.25s ease;
+            caret-color: rgba(100, 200, 255, 0.4);
+        }
+        .inputs input:focus {
+            border-color: rgba(100, 200, 255, 0.2);
+            background: rgba(100, 200, 255, 0.03);
+            box-shadow: 0 0 30px rgba(100, 200, 255, 0.03);
+            transform: translateY(-2px);
+        }
+        .inputs input.filled {
+            border-color: rgba(100, 200, 255, 0.12);
+            background: rgba(100, 200, 255, 0.02);
+        }
+        .inputs input::placeholder {
+            color: rgba(255, 255, 255, 0.04);
+            font-size: 16px;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px 0;
+            border: none;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Courier New', monospace;
+            color: rgba(255, 255, 255, 0.6);
+            background: rgba(100, 200, 255, 0.04);
+            border: 1px solid rgba(100, 200, 255, 0.06);
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+        .btn:hover {
+            background: rgba(100, 200, 255, 0.08);
+            border-color: rgba(100, 200, 255, 0.12);
+            color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 40px rgba(100, 200, 255, 0.03);
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: translateY(0px);
+        }
+        .status {
+            text-align: center;
+            font-size: 13px;
+            min-height: 28px;
+            padding: 10px 0 0;
+            color: rgba(255, 255, 255, 0.15);
+            letter-spacing: 1px;
+            transition: 0.3s ease;
+        }
+        .status.error {
+            color: #f87171;
+        }
+        .status.success {
+            color: #6ee7b7;
+        }
+        .divider {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin: 18px 0 8px;
+            opacity: 0.08;
+            font-size: 9px;
+            letter-spacing: 6px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        .foot {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.04);
+            letter-spacing: 3px;
+        }
+        @media (max-width: 440px) {
+            .panel {
+                padding: 22px 16px 20px;
+            }
+            .inputs input {
+                width: 46px;
+                height: 54px;
+                font-size: 24px;
+            }
+            .header h1 {
+                font-size: 16px;
+            }
+        }
+        .shake {
+            animation: shake 0.35s ease;
+        }
+        @keyframes shake {
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+            20% {
+                transform: translateX(-6px);
+            }
+            40% {
+                transform: translateX(6px);
+            }
+            60% {
+                transform: translateX(-4px);
+            }
+            80% {
+                transform: translateX(4px);
+            }
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(14px);
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 16px;
+            animation: fadein 0.5s ease;
+        }
+        .overlay.active {
+            display: flex;
+        }
+        @keyframes fadein {
+            0% {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .overlay .big {
+            font-size: 64px;
+            animation: float 2.8s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+        .overlay h2 {
+            color: #6ee7b7;
+            font-size: 22px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        .overlay p {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 13px;
+            letter-spacing: 2px;
+        }
+        .overlay .reset {
+            margin-top: 8px;
+            padding: 10px 32px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            transition: 0.3s ease;
+            letter-spacing: 2px;
+        }
+        .overlay .reset:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.6);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="panel" id="panel">
+            <div class="header">
+                <span class="icon">⎔</span>
+                <h1>· access ·</h1>
+            </div>
+            <div class="sub"><span>⏣</span> enter the 4‑digit key</div>
+
+            <div class="inputs" id="inputs">
+                <input type="text" maxlength="1" class="box" data-i="0" placeholder="·" autofocus />
+                <input type="text" maxlength="1" class="box" data-i="1" placeholder="·" />
+                <input type="text" maxlength="1" class="box" data-i="2" placeholder="·" />
+                <input type="text" maxlength="1" class="box" data-i="3" placeholder="·" />
+            </div>
+
+            <button class="btn" id="verify">⏣ verify</button>
+            <div class="status" id="status">—</div>
+
+            <div class="divider"><span>◈</span><span>◆</span><span>◈</span><span>◆</span><span>◈</span></div>
+            <div class="foot">⏣ hidden · no clues ⏣</div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <div class="big">⚡</div>
+        <h2>access granted</h2>
+        <p>you found the hidden code</p>
+        <button class="reset" id="reset">↻ reset</button>
+    </div>
+
+    <script>
+        // ── the code is never shown ──
+        // encoded using 9's complement + a twist
+        // actual code: 7391  →  9's complement: 2608  →  then reversed: 8062
+        // stored as "8062" — you'd never guess it.
+        const ENCODED = '8062';
+
+        function decode(enc) {
+            // reverse the 9's complement
+            let rev = enc.split('').reverse().join('');
+            let out = '';
+            for (let ch of rev) {
+                out += String(9 - parseInt(ch, 10));
+            }
+            return out;
+        }
+
+        const CODE = decode(ENCODED); // "7391"
+
+        // ── DOM ──
+        const inputs = document.querySelectorAll('.box');
+        const statusEl = document.getElementById('status');
+        const panel = document.getElementById('panel');
+        const overlay = document.getElementById('overlay');
+        const resetBtn = document.getElementById('reset');
+        const verifyBtn = document.getElementById('verify');
+
+        let current = ['', '', '', ''];
+        let attempts = 0;
+
+        inputs.forEach((inp, idx) => {
+            inp.addEventListener('input', (e) => {
+                const v = e.target.value.replace(/\D/g, '').slice(0, 1);
+                e.target.value = v;
+                current[idx] = v;
+                if (v) {
+                    inp.classList.add('filled');
+                    if (idx < 3) inputs[idx + 1].focus();
+                } else {
+                    inp.classList.remove('filled');
+                }
+                statusEl.textContent = '—';
+                statusEl.className = 'status';
+                panel.classList.remove('shake');
+            });
+
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+                    inputs[idx - 1].focus();
+                    inputs[idx - 1].select();
+                }
+                if (e.key === 'Enter') verifyCode();
+            });
+
+            inp.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const raw = (e.clipboardData || window.clipboardData).getData('text');
+                const digits = raw.replace(/\D/g, '').slice(0, 4);
+                if (digits) {
+                    const chars = digits.split('');
+                    chars.forEach((ch, i) => {
+                        if (i < 4) {
+                            inputs[i].value = ch;
+                            inputs[i].classList.add('filled');
+                            current[i] = ch;
+                        }
+                    });
+                    const next = Math.min(chars.length, 3);
+                    if (next < 4) inputs[next].focus();
+                    else inputs[3].focus();
+                    statusEl.textContent = '—';
+                    statusEl.className = 'status';
+                }
+            });
+
+            inp.addEventListener('click', () => inp.select());
+        });
+
+        function verifyCode() {
+            const allFilled = current.every(d => d !== '');
+            if (!allFilled) {
+                statusEl.textContent = '⛔ fill all 4 digits';
+                statusEl.className = 'status error';
+                panel.classList.add('shake');
+                setTimeout(() => panel.classList.remove('shake'), 500);
+                return;
+            }
+
+            const entered = current.join('');
+            attempts++;
+
+            if (entered === CODE) {
+                statusEl.textContent = '✅ granted';
+                statusEl.className = 'status success';
+                setTimeout(() => overlay.classList.add('active'), 350);
+                return;
+            }
+
+            statusEl.textContent = `❌ denied  (${attempts})`;
+            statusEl.className = 'status error';
+            panel.classList.add('shake');
+            setTimeout(() => panel.classList.remove('shake'), 500);
+
+            setTimeout(() => {
+                inputs.forEach((inp, i) => {
+                    inp.value = '';
+                    inp.classList.remove('filled');
+                    current[i] = '';
+                });
+                inputs[0].focus();
+            }, 600);
+        }
+
+        verifyBtn.addEventListener('click', verifyCode);
+
+        inputs[3].addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') verifyCode();
+        });
+
+        resetBtn.addEventListener('click', () => {
+            overlay.classList.remove('active');
+            inputs.forEach((inp, i) => {
+                inp.value = '';
+                inp.classList.remove('filled');
+                current[i] = '';
+            });
+            statusEl.textContent = '—';
+            statusEl.className = 'status';
+            attempts = 0;
+            inputs[0].focus();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                resetBtn.click();
+            }
+        });
+
+        inputs[0].focus();
+
+        // ── no clues, no hints, nothing ──
+        console.log('%c⛁', 'font-size:40px; color:#1a1a2e;');
+        console.log('%cno hints here', 'font-size:12px; color:rgba(255,255,255,0.08);');
+    </script>
+</body>
+</html>

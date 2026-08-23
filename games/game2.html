@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coin Clicker</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: white;
+      user-select: none;
+    }
+    .coin {
+      font-size: 100px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .coin:active {
+      transform: scale(0.9);
+    }
+    .score {
+      font-size: 32px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .hint {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="coin" id="coin">🪙</div>
+  <div class="score">Coins: <span id="score">0</span></div>
+  <p class="hint">Click the coin to earn coins!</p>
+
+  <script>
+    // Global game object – accessible by executor
+    window.game = {
+      coins: 0,
+      increment: function(amount) {
+        amount = amount || 1;
+        this.coins += amount;
+        updateDisplay();
+        return this.coins;
+      },
+      reset: function() {
+        this.coins = 0;
+        updateDisplay();
+        return this.coins;
+      },
+      setCoins: function(value) {
+        this.coins = Number(value) || 0;
+        updateDisplay();
+        return this.coins;
+      }
+    };
+
+    const coinEl = document.getElementById('coin');
+    const scoreEl = document.getElementById('score');
+
+    function updateDisplay() {
+      scoreEl.textContent = game.coins;
+    }
+
+    coinEl.addEventListener('click', () => {
+      game.increment(1);
+    });
+
+    // Initial display
+    updateDisplay();
+
+    // Log a welcome message (optional)
+    console.log('Coin Clicker loaded. Use game.coins, game.increment(), etc. from executor.');
+  </script>
+
+</body>
+</html>
