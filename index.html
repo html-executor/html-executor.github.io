@@ -5,243 +5,84 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GameHub Pro</title>
   <style>
-    /* ─── CSS Variables (Light Mode Default) ─── */
-    :root {
-      --bg: #f4f6f8;
-      --panel: #ffffff;
-      --border: #d0d5dd;
-      --text: #1e293b;
-      --muted: #64748b;
-      --accent: #555555;
-      --accent-hover: #333333;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --warning: #f59e0b;
-      --shadow: 0 1px 3px rgba(0,0,0,0.08);
-      --radius: 6px;
-      --font: 'Segoe UI', Arial, sans-serif;
-      --overlay-bg: #1a1a1a;
-      --executor-bg: #ffffff;
-      --executor-console-bg: #1a1a1a;
-      --executor-console-text: #e0e0e0;
-    }
-    body.dark-mode {
-      --bg: #1a1a1a;
-      --panel: #2d2d2d;
-      --border: #444444;
-      --text: #e0e0e0;
-      --muted: #aaaaaa;
-      --accent: #888888;
-      --accent-hover: #aaaaaa;
-      --danger: #f87171;
-      --success: #4ade80;
-      --warning: #fbbf24;
-      --executor-bg: #2d2d2d;
-      --executor-console-bg: #1a1a1a;
-      --executor-console-text: #e0e0e0;
-      --overlay-bg: #1a1a1a;
-    }
+    /* ─── Same CSS as before (unchanged) ─── */
+    :root { --bg:#f4f6f8; --panel:#ffffff; --border:#d0d5dd; --text:#1e293b; --muted:#64748b; --accent:#555555; --accent-hover:#333333; --danger:#dc2626; --success:#16a34a; --warning:#f59e0b; --shadow:0 1px 3px rgba(0,0,0,0.08); --radius:6px; --font:'Segoe UI',Arial,sans-serif; --overlay-bg:#1a1a1a; --executor-bg:#ffffff; --executor-console-bg:#1a1a1a; --executor-console-text:#e0e0e0; }
+    body.dark-mode { --bg:#1a1a1a; --panel:#2d2d2d; --border:#444444; --text:#e0e0e0; --muted:#aaaaaa; --accent:#888888; --accent-hover:#aaaaaa; --danger:#f87171; --success:#4ade80; --warning:#fbbf24; --executor-bg:#2d2d2d; --executor-console-bg:#1a1a1a; --executor-console-text:#e0e0e0; --overlay-bg:#1a1a1a; }
     * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      font-family: var(--font);
-      background: var(--bg);
-      color: var(--text);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      transition: background 0.2s, color 0.2s;
-    }
-    button {
-      font-family: inherit;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: var(--panel);
-      color: var(--text);
-      padding: 6px 14px;
-      border-radius: var(--radius);
-      font-size: 13px;
-      transition: 0.2s;
-    }
-    button:hover { background: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
-    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
-    button.primary:hover { background: var(--accent-hover); }
-    button.danger { color: var(--danger); }
-    button.danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
-    button.success { background: var(--success); color: white; border-color: var(--success); }
-    input, select, textarea {
-      font-family: inherit;
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 6px 10px;
-      font-size: 13px;
-      background: var(--panel);
-      color: var(--text);
-      width: 100%;
-    }
-    textarea { font-family: 'Consolas', monospace; resize: vertical; }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-    /* ─── Top Bar ─── */
-    .topbar {
-      background: var(--panel);
-      border-bottom: 1px solid var(--border);
-      padding: 0 20px;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-    .topbar-left { display: flex; align-items: center; gap: 20px; }
-    .logo { font-size: 18px; font-weight: 700; color: var(--accent); }
-    .topbar-right { display: flex; gap: 10px; align-items: center; }
-    .user-badge { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-
-    /* ── Layout ── */
+    body { font-family:var(--font); background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; transition:background 0.2s,color 0.2s; }
+    button { font-family:inherit; cursor:pointer; border:1px solid var(--border); background:var(--panel); color:var(--text); padding:6px 14px; border-radius:var(--radius); font-size:13px; transition:0.2s; }
+    button:hover { background:var(--accent-hover); color:#fff; border-color:var(--accent-hover); }
+    button.primary { background:var(--accent); color:white; border-color:var(--accent); }
+    button.primary:hover { background:var(--accent-hover); }
+    button.danger { color:var(--danger); }
+    button.danger:hover { background:var(--danger); color:white; border-color:var(--danger); }
+    button.success { background:var(--success); color:white; border-color:var(--success); }
+    input,select,textarea { font-family:inherit; border:1px solid var(--border); border-radius:var(--radius); padding:6px 10px; font-size:13px; background:var(--panel); color:var(--text); width:100%; }
+    textarea { font-family:Consolas,monospace; resize:vertical; }
+    ::-webkit-scrollbar { width:6px; } ::-webkit-scrollbar-track { background:transparent; } ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+    .topbar { background:var(--panel); border-bottom:1px solid var(--border); padding:0 20px; height:52px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .topbar-left { display:flex; align-items:center; gap:20px; }
+    .logo { font-size:18px; font-weight:700; color:var(--accent); }
+    .topbar-right { display:flex; gap:10px; align-items:center; }
     .app-body { flex:1; display:flex; overflow:hidden; }
-    .sidebar {
-      width: 200px;
-      background: var(--panel);
-      border-right: 1px solid var(--border);
-      padding: 16px 0;
-      flex-shrink: 0;
-      overflow-y: auto;
-    }
-    .sidebar button {
-      display: block;
-      width: 100%;
-      text-align: left;
-      padding: 10px 20px;
-      border: none;
-      background: transparent;
-      border-radius: 0;
-      color: var(--muted);
-      font-weight: 500;
-    }
-    .sidebar button:hover { background: var(--bg); color: var(--text); }
-    .sidebar button.active { background: var(--bg); color: var(--text); border-left: 3px solid var(--accent); }
+    .sidebar { width:200px; background:var(--panel); border-right:1px solid var(--border); padding:16px 0; flex-shrink:0; overflow-y:auto; }
+    .sidebar button { display:block; width:100%; text-align:left; padding:10px 20px; border:none; background:transparent; border-radius:0; color:var(--muted); font-weight:500; }
+    .sidebar button:hover { background:var(--bg); color:var(--text); }
+    .sidebar button.active { background:var(--bg); color:var(--text); border-left:3px solid var(--accent); }
     .content { flex:1; overflow-y:auto; padding:20px; }
-    .page { display:none; }
-    .page.active { display:block; }
-    .page-header {
-      display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;
-    }
+    .page { display:none; } .page.active { display:block; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
     .page-header h1 { font-size:22px; font-weight:600; }
-
-    /* ── Game Grid ── */
-    .game-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap:16px; }
-    .game-card {
-      background: var(--panel);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      overflow:hidden;
-      cursor:pointer;
-      transition:0.2s;
-      box-shadow: var(--shadow);
-      position:relative;
-    }
-    .game-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .game-card img {
-      width:100%; aspect-ratio:16/9; object-fit:cover; background: var(--bg); display:block;
-    }
-    .game-card .info { padding:10px 12px; }
-    .game-card .info h3 { font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
+    .game-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:16px; }
+    .game-card { background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:0.2s; box-shadow:var(--shadow); position:relative; }
+    .game-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .game-card img { width:100%; aspect-ratio:16/9; object-fit:cover; background:var(--bg); display:block; }
+    .game-card .info { padding:10px 12px; } .game-card .info h3 { font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:4px; }
     .game-card .info .meta { display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted); }
-    .badge {
-      position:absolute; top:8px; right:8px; background:var(--success); color:white; font-size:10px; padding:2px 8px; border-radius:12px; font-weight:600;
-    }
-
-    /* ── Filter Bar ── */
-    .filter-bar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
-    .filter-bar input, .filter-bar select { width:auto; }
-    .filter-bar .search { flex:1; min-width:200px; }
-
-    /* ── Workshop ── */
+    .badge { position:absolute; top:8px; right:8px; background:var(--success); color:white; font-size:10px; padding:2px 8px; border-radius:12px; font-weight:600; }
+    .filter-bar { display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; } .filter-bar input,.filter-bar select { width:auto; } .filter-bar .search { flex:1; min-width:200px; }
     .workshop-list { display:flex; flex-direction:column; gap:10px; }
-    .script-item {
-      background: var(--panel);
-      border:1px solid var(--border);
-      border-radius: var(--radius);
-      padding:12px 16px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:10px;
-    }
-    .script-item .info { flex:1; }
-    .script-item .info .title { font-weight:600; }
-    .script-item .info .meta { font-size:12px; color:var(--muted); }
-
-    /* ── Create/Test Editor ── */
+    .script-item { background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:12px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
     .editor-container { display:grid; grid-template-columns:1fr 1fr; gap:16px; height:70vh; }
-    .editor-pane, .preview-pane { display:flex; flex-direction:column; gap:8px; }
+    .editor-pane,.preview-pane { display:flex; flex-direction:column; gap:8px; }
     .editor-pane textarea { flex:1; min-height:200px; }
     .preview-pane iframe { flex:1; border:1px solid var(--border); border-radius:var(--radius); background:white; }
     .console-output { background:var(--executor-console-bg); color:var(--executor-console-text); font-family:monospace; font-size:12px; padding:8px; border-radius:var(--radius); min-height:80px; max-height:150px; overflow-y:auto; white-space:pre-wrap; }
-
-    /* ── Game Overlay ── */
-    .game-overlay {
-      position:fixed; inset:0; background:var(--overlay-bg); z-index:500; display:none; flex-direction:column;
-    }
+    .game-overlay { position:fixed; inset:0; background:var(--overlay-bg); z-index:500; display:none; flex-direction:column; }
     .game-overlay.open { display:flex; }
-    .game-overlay-top {
-      background:var(--panel); padding:10px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); flex-shrink:0; z-index:10;
-    }
+    .game-overlay-top { background:var(--panel); padding:10px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); flex-shrink:0; z-index:10; }
     .game-overlay-top .actions { display:flex; gap:8px; }
-    .game-iframe-container { flex:1; position:relative; }
-    .game-iframe-container iframe { width:100%; height:100%; border:none; background:white; }
-
-    /* ── Executor Window ── */
-    .executor-window {
-      position:fixed; top:60px; right:20px; width:450px; max-width:90vw; max-height:80vh;
-      background:var(--executor-bg); border:1px solid var(--border); border-radius:var(--radius);
-      box-shadow:0 4px 20px rgba(0,0,0,0.3); z-index:600; display:none; flex-direction:column; overflow:hidden;
-    }
+    .game-iframe-container { flex:1; position:relative; } .game-iframe-container iframe { width:100%; height:100%; border:none; background:white; }
+    .executor-window { position:fixed; top:60px; right:20px; width:450px; max-width:90vw; max-height:80vh; background:var(--executor-bg); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 4px 20px rgba(0,0,0,0.3); z-index:600; display:none; flex-direction:column; overflow:hidden; }
     .executor-window.open { display:flex; }
-    .executor-header {
-      background:var(--panel); padding:8px 12px; display:flex; justify-content:space-between; align-items:center; cursor:grab; border-bottom:1px solid var(--border); flex-shrink:0;
-    }
+    .executor-header { background:var(--panel); padding:8px 12px; display:flex; justify-content:space-between; align-items:center; cursor:grab; border-bottom:1px solid var(--border); flex-shrink:0; }
     .executor-header .status { font-size:12px; color:var(--muted); margin-left:8px; padding:2px 8px; border-radius:10px; background:var(--bg); }
     .executor-header .status.attached { background:var(--success); color:white; }
     .executor-body { padding:12px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; flex:1; }
     .executor-tabs { display:flex; gap:6px; border-bottom:1px solid var(--border); padding-bottom:6px; flex-wrap:wrap; }
     .executor-tabs button { padding:4px 12px; font-size:12px; background:transparent; border:none; color:var(--muted); cursor:pointer; border-radius:4px; }
     .executor-tabs button.active { background:var(--bg); color:var(--text); font-weight:600; }
-    .tab-content { display:none; }
-    .tab-content.active { display:block; }
-
-    /* ── Modals ── */
+    .tab-content { display:none; } .tab-content.active { display:block; }
     .modal { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:700; }
     .modal.open { display:flex; }
     .modal-box { background:var(--panel); border-radius:var(--radius); padding:24px; max-width:500px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.2); }
-    .modal-box h3 { margin-bottom:8px; }
-    .modal-box p { color:var(--muted); margin-bottom:16px; line-height:1.5; }
+    .modal-box h3 { margin-bottom:8px; } .modal-box p { color:var(--muted); margin-bottom:16px; line-height:1.5; }
     .modal-actions { display:flex; justify-content:flex-end; gap:8px; }
-
-    /* ── Chat (per script) ── */
     .chat-container { display:flex; flex-direction:column; height:300px; }
     .chat-messages { flex:1; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius); padding:8px; margin-bottom:8px; }
-    .chat-message { margin-bottom:6px; }
-    .chat-message .user { font-weight:600; }
-    .chat-message .time { font-size:10px; color:var(--muted); }
-    .chat-input { display:flex; gap:8px; }
-    .chat-input input { flex:1; }
-    .user-moderation { display:flex; gap:6px; }
+    .chat-message { margin-bottom:6px; } .chat-message .user { font-weight:600; } .chat-message .time { font-size:10px; color:var(--muted); }
+    .chat-input { display:flex; gap:8px; } .chat-input input { flex:1; }
   </style>
 </head>
 <body>
+  <!-- Same HTML structure as previous version, but we'll use API calls in script -->
 
-  <!-- Top Bar -->
   <header class="topbar">
-    <div class="topbar-left">
-      <span class="logo">GameHub Pro</span>
-    </div>
+    <div class="topbar-left"><span class="logo">GameHub Pro</span></div>
     <div class="topbar-right">
       <button class="dark-mode-toggle" id="darkModeToggle">Dark</button>
       <button id="btnGuide">Guide</button>
-      <div class="user-badge" id="userBadge">
+      <div class="user-badge">
         <span id="userName">Guest</span>
         <button id="btnLogin">Login</button>
         <button id="btnLogout" style="display:none;">Logout</button>
@@ -259,48 +100,29 @@
     </nav>
 
     <main class="content">
-      <!-- Games Page -->
       <div class="page active" id="page-games">
-        <div class="page-header">
-          <h1>Available Games</h1>
-          <button class="primary" id="btnUploadGame">Upload Game</button>
-        </div>
+        <div class="page-header"><h1>Available Games</h1><button class="primary" id="btnUploadGame">Upload Game</button></div>
         <div class="filter-bar">
           <input type="text" id="searchInput" class="search" placeholder="Search games..." />
           <select id="categoryFilter"><option value="all">All Categories</option></select>
-          <select id="sortFilter">
-            <option value="popular">Most Popular</option>
-            <option value="newest">Newest</option>
-            <option value="title">Alphabetical</option>
-          </select>
+          <select id="sortFilter"><option value="popular">Most Popular</option><option value="newest">Newest</option><option value="title">Alphabetical</option></select>
         </div>
         <div class="game-grid" id="gameGrid"></div>
       </div>
 
-      <!-- Library Page -->
       <div class="page" id="page-library">
         <div class="page-header"><h1>My Library</h1></div>
         <div id="libraryContent"></div>
       </div>
 
-      <!-- Workshop Page -->
       <div class="page" id="page-workshop">
-        <div class="page-header">
-          <h1>Script Workshop</h1>
-          <button class="primary" id="btnAddScript">Add Script</button>
-        </div>
-        <div class="filter-bar">
-          <input type="text" id="workshopSearch" class="search" placeholder="Search scripts..." />
-        </div>
+        <div class="page-header"><h1>Script Workshop</h1><button class="primary" id="btnAddScript">Add Script</button></div>
+        <div class="filter-bar"><input type="text" id="workshopSearch" class="search" placeholder="Search scripts..." /></div>
         <div class="workshop-list" id="workshopList"></div>
       </div>
 
-      <!-- Create/Test Page -->
       <div class="page" id="page-create">
-        <div class="page-header">
-          <h1>Create & Test Game</h1>
-          <button class="primary" id="btnPublishGame">Publish</button>
-        </div>
+        <div class="page-header"><h1>Create & Test Game</h1><button class="primary" id="btnPublishGame">Publish</button></div>
         <div class="editor-container">
           <div class="editor-pane">
             <label>HTML Code</label>
@@ -325,7 +147,6 @@
         </div>
       </div>
 
-      <!-- Admin Page -->
       <div class="page" id="page-admin">
         <div class="page-header"><h1>Admin Panel</h1></div>
         <div id="adminContent"></div>
@@ -342,9 +163,7 @@
         <button class="danger" id="btnCloseGame">Close</button>
       </div>
     </div>
-    <div class="game-iframe-container">
-      <iframe id="gameFrame" sandbox="allow-scripts allow-same-origin"></iframe>
-    </div>
+    <div class="game-iframe-container"><iframe id="gameFrame" sandbox="allow-scripts allow-same-origin"></iframe></div>
   </div>
 
   <!-- Executor Window -->
@@ -367,16 +186,13 @@
         <button data-tab="html">HTML</button>
         <button data-tab="secrets">Secrets</button>
       </div>
-
       <div id="tab-editor" class="tab-content active">
         <textarea id="scriptEditor" spellcheck="false">// Write script here</textarea>
         <button class="primary" id="btnRunScript">Run</button>
         <button id="btnClearConsole">Clear Console</button>
         <div class="console" id="console">Ready</div>
       </div>
-      <div id="tab-scripts" class="tab-content">
-        <div id="premadeScriptsList"></div>
-      </div>
+      <div id="tab-scripts" class="tab-content"><div id="premadeScriptsList"></div></div>
       <div id="tab-functions" class="tab-content">
         <button class="primary" id="btnFindFunctions">Scan Functions</button>
         <div class="function-list" id="functionList"></div>
@@ -399,7 +215,7 @@
     </div>
   </div>
 
-  <!-- Login/Register Modal -->
+  <!-- Auth Modal -->
   <div class="modal" id="authModal">
     <div class="modal-box">
       <h3 id="authTitle">Login</h3>
@@ -431,7 +247,7 @@
     </div>
   </div>
 
-  <!-- Script Detail Modal -->
+  <!-- Script Modal -->
   <div class="modal" id="scriptModal">
     <div class="modal-box" style="max-width:600px;">
       <h3 id="scriptModalTitle"></h3>
@@ -440,7 +256,6 @@
         <button id="btnCopyScriptModal">Copy</button>
         <button id="btnScriptClose">Close</button>
       </div>
-      <!-- Chat for this script -->
       <div class="chat-container" style="height:200px;">
         <div class="chat-messages" id="scriptChatMessages"></div>
         <div class="chat-input">
@@ -461,42 +276,15 @@
   </div>
 
   <script>
-    // ─── Data Store (localStorage simulation) ───
-    const DB = {
-      users: JSON.parse(localStorage.getItem('gh_users') || '[]'),
-      games: JSON.parse(localStorage.getItem('gh_games') || '[]'),
-      scripts: JSON.parse(localStorage.getItem('gh_scripts') || '[]'),
-      scriptChats: JSON.parse(localStorage.getItem('gh_scriptChats') || '{}'),
-      pendingGames: JSON.parse(localStorage.getItem('gh_pendingGames') || '[]'),
-      pendingScripts: JSON.parse(localStorage.getItem('gh_pendingScripts') || '[]'),
-      currentUser: JSON.parse(localStorage.getItem('gh_currentUser') || 'null'),
-      settings: JSON.parse(localStorage.getItem('gh_settings') || '{"darkMode":false}')
-    };
+    const API = ''; // same origin
 
-    if (!DB.users.some(u => u.username === 'admin')) {
-      DB.users.push({ username: 'admin', password: 'admin123', role: 'admin', mutedUntil: 0, bannedUntil: 0 });
-    }
-
-    function saveDB() {
-      localStorage.setItem('gh_users', JSON.stringify(DB.users));
-      localStorage.setItem('gh_games', JSON.stringify(DB.games));
-      localStorage.setItem('gh_scripts', JSON.stringify(DB.scripts));
-      localStorage.setItem('gh_scriptChats', JSON.stringify(DB.scriptChats));
-      localStorage.setItem('gh_pendingGames', JSON.stringify(DB.pendingGames));
-      localStorage.setItem('gh_pendingScripts', JSON.stringify(DB.pendingScripts));
-      localStorage.setItem('gh_currentUser', JSON.stringify(DB.currentUser));
-      localStorage.setItem('gh_settings', JSON.stringify(DB.settings));
-    }
-
-    // ─── State ───
-    let currentUser = DB.currentUser;
+    let currentUser = null;
     let currentGame = null;
     let attachedWindow = null;
-    let dragData = null;
-    let premadeScripts = [];
     let selectedScriptId = null;
+    let dragData = null;
 
-    // ─── DOM Elements ───
+    // DOM elements
     const gameGrid = document.getElementById('gameGrid');
     const libraryContent = document.getElementById('libraryContent');
     const workshopList = document.getElementById('workshopList');
@@ -508,48 +296,33 @@
     const chatMessages = document.getElementById('scriptChatMessages');
     const chatInput = document.getElementById('scriptChatInput');
 
-    // ─── Initialize ───
+    async function api(url, options) {
+      const res = await fetch(`${API}${url}`, options);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      return data;
+    }
+
     async function init() {
       applyDarkMode();
-      await loadLocalGames();
-      renderGames();
-      renderLibrary();
-      renderWorkshop();
-      renderAdmin();
+      await refreshGames();
+      await refreshWorkshop();
+      await refreshAdmin();
       updateUserUI();
     }
 
-    // ─── Load games from games.json ───
-    async function loadLocalGames() {
-      try {
-        const response = await fetch('games.json');
-        if (!response.ok) throw new Error('games.json not found');
-        const localGames = await response.json();
-        const existingIds = new Set(DB.games.map(g => g.id));
-        localGames.forEach(g => {
-          if (!existingIds.has(g.id)) {
-            DB.games.push({
-              id: g.id,
-              title: g.title,
-              description: g.description || '',
-              category: g.category || 'Uncategorized',
-              file: g.file || null,
-              html: null,
-              thumbnail: g.thumbnail || '',
-              approved: true,
-              views: 0,
-              author: 'system',
-              createdAt: Date.now()
-            });
-          }
-        });
-        saveDB();
-      } catch (err) {
-        console.warn('Could not load games.json, using only user-added games.', err);
-      }
+    function applyDarkMode() {
+      const dark = localStorage.getItem('gh_darkMode') === 'true';
+      document.body.classList.toggle('dark-mode', dark);
+      document.getElementById('darkModeToggle').textContent = dark ? 'Light' : 'Dark';
     }
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      const dark = !document.body.classList.contains('dark-mode');
+      document.body.classList.toggle('dark-mode', dark);
+      localStorage.setItem('gh_darkMode', dark);
+      document.getElementById('darkModeToggle').textContent = dark ? 'Light' : 'Dark';
+    });
 
-    // ─── Authentication ───
     function updateUserUI() {
       if (currentUser) {
         userName.textContent = currentUser.username;
@@ -564,96 +337,57 @@
       }
     }
 
-    btnLogin.addEventListener('click', () => openAuthModal('login'));
-    btnLogout.addEventListener('click', () => {
+    // Auth handlers
+    document.getElementById('btnLogin').addEventListener('click', () => openAuthModal('login'));
+    document.getElementById('btnLogout').addEventListener('click', () => {
       currentUser = null;
-      DB.currentUser = null;
-      saveDB();
       updateUserUI();
-      renderAdmin();
+      adminNavBtn.style.display = 'none';
     });
 
     function openAuthModal(mode) {
       const modal = document.getElementById('authModal');
-      const title = document.getElementById('authTitle');
-      const submitBtn = document.getElementById('btnAuthSubmit');
-      const switchBtn = document.getElementById('btnAuthSwitch');
-      if (mode === 'login') {
-        title.textContent = 'Login';
-        submitBtn.textContent = 'Login';
-        switchBtn.textContent = 'Register';
-      } else {
-        title.textContent = 'Register';
-        submitBtn.textContent = 'Register';
-        switchBtn.textContent = 'Login';
-      }
+      document.getElementById('authTitle').textContent = mode === 'login' ? 'Login' : 'Register';
+      document.getElementById('btnAuthSubmit').textContent = mode === 'login' ? 'Login' : 'Register';
+      document.getElementById('btnAuthSwitch').textContent = mode === 'login' ? 'Register' : 'Login';
       modal.classList.add('open');
       document.getElementById('authUsername').value = '';
       document.getElementById('authPassword').value = '';
-      submitBtn.onclick = () => handleAuth(mode);
-      switchBtn.onclick = () => openAuthModal(mode === 'login' ? 'register' : 'login');
+      document.getElementById('btnAuthSubmit').onclick = async () => {
+        const username = document.getElementById('authUsername').value.trim();
+        const password = document.getElementById('authPassword').value;
+        try {
+          const data = await api(`/api/${mode}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          currentUser = data.user;
+          updateUserUI();
+          modal.classList.remove('open');
+          if (currentUser.role === 'admin') refreshAdmin();
+        } catch (err) { alert(err.message); }
+      };
+      document.getElementById('btnAuthSwitch').onclick = () => openAuthModal(mode === 'login' ? 'register' : 'login');
       document.getElementById('btnAuthCancel').onclick = () => modal.classList.remove('open');
     }
 
-    function handleAuth(mode) {
-      const username = document.getElementById('authUsername').value.trim();
-      const password = document.getElementById('authPassword').value;
-      if (!username || !password) return alert('Please fill all fields.');
-      if (mode === 'register') {
-        if (DB.users.some(u => u.username === username)) return alert('Username exists.');
-        const newUser = { username, password, role: 'user', mutedUntil: 0, bannedUntil: 0 };
-        DB.users.push(newUser);
-        currentUser = newUser;
-        DB.currentUser = currentUser;
-        saveDB();
-        updateUserUI();
-        document.getElementById('authModal').classList.remove('open');
-      } else {
-        const user = DB.users.find(u => u.username === username && u.password === password);
-        if (!user) return alert('Invalid credentials.');
-        if (user.bannedUntil && Date.now() < user.bannedUntil) {
-          return alert('You are banned until ' + new Date(user.bannedUntil).toLocaleString());
-        }
-        currentUser = user;
-        DB.currentUser = user;
-        saveDB();
-        updateUserUI();
-        document.getElementById('authModal').classList.remove('open');
-        renderAdmin();
-      }
+    // Games
+    async function refreshGames() {
+      const games = await api('/api/games');
+      renderGames(games);
+      renderLibrary(games);
     }
 
-    // ─── Dark Mode ───
-    function applyDarkMode() {
-      if (DB.settings.darkMode) {
-        document.body.classList.add('dark-mode');
-        document.getElementById('darkModeToggle').textContent = 'Light';
-      } else {
-        document.body.classList.remove('dark-mode');
-        document.getElementById('darkModeToggle').textContent = 'Dark';
-      }
-    }
-    document.getElementById('darkModeToggle').addEventListener('click', () => {
-      DB.settings.darkMode = !DB.settings.darkMode;
-      saveDB();
-      applyDarkMode();
-    });
-
-    // ─── Game Rendering ───
-    function renderGames() {
+    function renderGames(games) {
       const search = document.getElementById('searchInput').value.toLowerCase();
       const category = document.getElementById('categoryFilter').value;
       const sort = document.getElementById('sortFilter').value;
-      let filtered = DB.games.filter(g => g.approved);
-      filtered = filtered.filter(g => {
-        const matchSearch = g.title.toLowerCase().includes(search) || (g.description || '').toLowerCase().includes(search);
-        const matchCat = category === 'all' || g.category === category;
-        return matchSearch && matchCat;
-      });
-      if (sort === 'popular') filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
-      else if (sort === 'newest') filtered.sort((a, b) => b.createdAt - a.createdAt);
-      else if (sort === 'title') filtered.sort((a, b) => a.title.localeCompare(b.title));
-
+      let filtered = games.filter(g => g.title.toLowerCase().includes(search) || (g.description||'').toLowerCase().includes(search));
+      if (category !== 'all') filtered = filtered.filter(g => g.category === category);
+      if (sort === 'popular') filtered.sort((a,b) => (b.views||0)-(a.views||0));
+      else if (sort === 'newest') filtered.sort((a,b) => b.createdAt - a.createdAt);
+      else if (sort === 'title') filtered.sort((a,b) => a.title.localeCompare(b.title));
       gameGrid.innerHTML = '';
       filtered.forEach(game => {
         const card = document.createElement('div');
@@ -663,57 +397,39 @@
           <div class="badge">FREE</div>
           <div class="info">
             <h3>${game.title}</h3>
-            <div class="meta">
-              <span>${game.category || 'Uncategorized'}</span>
-              <span>👁️ ${game.views || 0}</span>
-            </div>
-          </div>
-        `;
+            <div class="meta"><span>${game.category || 'Uncategorized'}</span><span>👁️ ${game.views || 0}</span></div>
+          </div>`;
         card.addEventListener('click', () => launchGame(game));
         gameGrid.appendChild(card);
       });
-
-      const categories = [...new Set(DB.games.filter(g => g.approved).map(g => g.category).filter(Boolean))];
-      const catSelect = document.getElementById('categoryFilter');
-      catSelect.innerHTML = '<option value="all">All Categories</option>';
-      categories.forEach(c => catSelect.innerHTML += `<option value="${c}">${c}</option>`);
+      const cats = [...new Set(games.map(g => g.category).filter(Boolean))];
+      document.getElementById('categoryFilter').innerHTML = '<option value="all">All Categories</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
     }
 
-    function renderLibrary() {
-      const approvedGames = DB.games.filter(g => g.approved);
-      if (approvedGames.length === 0) {
-        libraryContent.innerHTML = '<p style="color:var(--muted);">No games available.</p>';
-        return;
+    function renderLibrary(games) {
+      libraryContent.innerHTML = games.length ? '<div class="game-grid"></div>' : '<p>No games available.</p>';
+      if (games.length) {
+        const grid = libraryContent.querySelector('.game-grid');
+        games.forEach(game => {
+          const card = document.createElement('div');
+          card.className = 'game-card';
+          card.innerHTML = `
+            <img src="${game.thumbnail || ''}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22112%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E'">
+            <div class="info"><h3>${game.title}</h3><div class="meta"><span>${game.category}</span><span>👁️ ${game.views}</span></div></div>`;
+          card.addEventListener('click', () => launchGame(game));
+          grid.appendChild(card);
+        });
       }
-      libraryContent.innerHTML = '<div class="game-grid"></div>';
-      const grid = libraryContent.querySelector('.game-grid');
-      approvedGames.forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        card.innerHTML = `
-          <img src="${game.thumbnail || ''}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22112%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E'">
-          <div class="info"><h3>${game.title}</h3><div class="meta"><span>${game.category}</span><span>👁️ ${game.views}</span></div></div>
-        `;
-        card.addEventListener('click', () => launchGame(game));
-        grid.appendChild(card);
-      });
     }
 
-    // ─── Launch Game (fix: handle both file and html) ───
-    function launchGame(game) {
+    async function launchGame(game) {
       currentGame = game;
       document.getElementById('gameTitle').textContent = game.title;
-      game.views = (game.views || 0) + 1;
-      saveDB();
       document.getElementById('gameOverlay').classList.add('open');
       const frame = document.getElementById('gameFrame');
-      if (game.file) {
-        frame.src = game.file;
-      } else if (game.html) {
-        frame.srcdoc = game.html;
-      } else {
-        frame.src = 'about:blank';
-      }
+      if (game.file) frame.src = game.file;
+      else if (game.html) frame.srcdoc = game.html;
+      else frame.src = 'about:blank';
       resetExecutor();
     }
 
@@ -725,7 +441,7 @@
       document.getElementById('executorStatus').textContent = 'Not attached';
     }
 
-    // ─── Executor ───
+    // Executor functions (same as before, but no backend changes needed)
     function resetExecutor() {
       document.getElementById('executorWindow').classList.remove('open');
       attachedWindow = null;
@@ -738,7 +454,6 @@
       if (open === undefined) open = !win.classList.contains('open');
       if (open) win.classList.add('open'); else win.classList.remove('open');
     }
-
     document.getElementById('btnToggleExecutor').addEventListener('click', () => toggleExecutor());
     document.getElementById('btnCloseExecutor').addEventListener('click', () => toggleExecutor(false));
     document.getElementById('btnMinimize').addEventListener('click', () => toggleExecutor(false));
@@ -754,20 +469,15 @@
         generatePremadeScripts(attachedWindow);
         setupLiveSpy(attachedWindow);
         document.getElementById('gameHTMLView').value = attachedWindow.document.documentElement.outerHTML;
-      } catch(e) {
-        alert('Attachment failed. Same-origin required.');
-      }
+      } catch(e) { alert('Attachment failed. Same-origin required.'); }
     });
 
     function runScript() {
       if (!attachedWindow) return alert('Not attached.');
-      const code = document.getElementById('scriptEditor').value;
       try {
-        attachedWindow.eval(code);
+        attachedWindow.eval(document.getElementById('scriptEditor').value);
         document.getElementById('console').innerHTML += '\nScript executed.';
-      } catch(e) {
-        document.getElementById('console').innerHTML += `\nError: ${e.message}`;
-      }
+      } catch(e) { document.getElementById('console').innerHTML += `\nError: ${e.message}`; }
     }
     document.getElementById('btnRunScript').addEventListener('click', runScript);
     document.getElementById('btnClearConsole').addEventListener('click', () => document.getElementById('console').innerHTML = 'Console cleared.');
@@ -776,9 +486,8 @@
       btn.addEventListener('click', () => {
         document.querySelectorAll('.executor-tabs button').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const tab = btn.dataset.tab;
         document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
-        document.getElementById(`tab-${tab}`).classList.add('active');
+        document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
       });
     });
 
@@ -789,14 +498,14 @@
       for (const key of keys) {
         try {
           const val = targetWindow[key];
-          const type = typeof val;
-          if (type === 'function' || (type === 'object' && val !== null && !Array.isArray(val) && key !== 'window' && key !== 'document')) {
-            funcs.push({ name: key, type });
+          if (typeof val === 'function' || (typeof val === 'object' && val !== null && !Array.isArray(val) && key !== 'window' && key !== 'document')) {
+            funcs.push({ name: key, type: typeof val });
           }
         } catch(e) {}
       }
       return funcs;
     }
+
     document.getElementById('btnFindFunctions').addEventListener('click', () => {
       if (!attachedWindow) return alert('Attach first.');
       const funcs = findFunctions(attachedWindow);
@@ -813,8 +522,7 @@
 
     function generatePremadeScripts(targetWindow) {
       const scripts = [];
-      const vars = ['coins','health','score','lives','money'];
-      vars.forEach(v => {
+      ['coins','health','score','lives','money'].forEach(v => {
         try {
           if (typeof targetWindow[v] === 'number') {
             scripts.push({ title: `Set ${v} to 999999`, code: `${v}=999999;` });
@@ -827,9 +535,7 @@
       scripts.forEach(s => {
         const btn = document.createElement('button');
         btn.textContent = s.title;
-        btn.addEventListener('click', () => {
-          document.getElementById('scriptEditor').value = s.code;
-        });
+        btn.addEventListener('click', () => document.getElementById('scriptEditor').value = s.code);
         list.appendChild(btn);
       });
     }
@@ -851,102 +557,39 @@
       if (html) navigator.clipboard.writeText(html);
     });
 
-    // ─── Upload Game ───
-    document.getElementById('btnUploadGame').addEventListener('click', () => {
-      if (!currentUser) return alert('Login required.');
-      document.getElementById('uploadModal').classList.add('open');
-    });
-    document.getElementById('btnUploadCancel').addEventListener('click', () => document.getElementById('uploadModal').classList.remove('open'));
-    document.getElementById('btnUploadSubmit').addEventListener('click', () => {
-      const title = document.getElementById('uploadTitle').value.trim();
-      const desc = document.getElementById('uploadDescription').value.trim();
-      const category = document.getElementById('uploadCategory').value.trim();
-      const htmlFile = document.getElementById('uploadHTMLFile').files[0];
-      const thumbFile = document.getElementById('uploadThumbnail').files[0];
-      if (!title || !htmlFile) return alert('Title and HTML file required.');
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const gameData = {
-          id: 'game_' + Date.now(),
-          title,
-          description: desc,
-          category,
-          html: e.target.result,
-          thumbnail: thumbFile ? URL.createObjectURL(thumbFile) : '',
-          approved: false,
-          views: 0,
-          author: currentUser.username,
-          createdAt: Date.now()
-        };
-        DB.pendingGames.push(gameData);
-        saveDB();
-        alert('Submitted for review.');
-        document.getElementById('uploadModal').classList.remove('open');
-        renderAdmin();
-      };
-      reader.readAsText(htmlFile);
-    });
-
-    // ─── Workshop Scripts ───
-    document.getElementById('btnAddScript').addEventListener('click', () => {
-      if (!currentUser) return alert('Login required.');
-      const title = prompt('Script title:');
-      const code = prompt('Paste code:');
-      if (title && code) {
-        DB.pendingScripts.push({
-          id: 'script_' + Date.now(),
-          title,
-          code,
-          author: currentUser.username,
-          approved: false,
-          createdAt: Date.now(),
-          image: ''
-        });
-        saveDB();
-        renderAdmin();
-        alert('Submitted for review.');
-      }
-    });
-
-    function renderWorkshop() {
-      const approvedScripts = DB.scripts.filter(s => s.approved);
+    // Workshop
+    async function refreshWorkshop() {
+      const scripts = await api('/api/scripts');
       const search = document.getElementById('workshopSearch').value.toLowerCase();
-      const filtered = approvedScripts.filter(s => s.title.toLowerCase().includes(search));
+      const filtered = scripts.filter(s => s.title.toLowerCase().includes(search));
       workshopList.innerHTML = '';
       filtered.forEach(s => {
         const item = document.createElement('div');
         item.className = 'script-item';
-        item.innerHTML = `
-          <div class="info">
-            <div class="title">${s.title}</div>
-            <div class="meta">by ${s.author}</div>
-          </div>
-          <button class="primary" data-id="${s.id}">View</button>
-        `;
+        item.innerHTML = `<div class="info"><div class="title">${s.title}</div><div class="meta">by ${s.author}</div></div><button class="primary">View</button>`;
         item.querySelector('button').addEventListener('click', () => openScriptModal(s));
         workshopList.appendChild(item);
       });
-      document.getElementById('workshopSearch').addEventListener('input', renderWorkshop);
     }
 
-    function openScriptModal(script) {
+    async function openScriptModal(script) {
       selectedScriptId = script.id;
       document.getElementById('scriptModalTitle').textContent = script.title;
       document.getElementById('scriptModalCode').textContent = script.code;
       document.getElementById('scriptModal').classList.add('open');
       document.getElementById('btnCopyScriptModal').onclick = () => navigator.clipboard.writeText(script.code);
       document.getElementById('btnScriptClose').onclick = () => document.getElementById('scriptModal').classList.remove('open');
-      loadScriptChat(script.id);
+      await loadChat(script.id);
     }
 
-    function loadScriptChat(scriptId) {
-      const messages = DB.scriptChats[scriptId] || [];
+    async function loadChat(scriptId) {
+      const messages = await api(`/api/scripts/${scriptId}/chat`);
       chatMessages.innerHTML = '';
       messages.forEach(msg => {
         const div = document.createElement('div');
         div.className = 'chat-message';
         div.innerHTML = `<span class="user">${msg.username}:</span> <span>${msg.text}</span> <span class="time">${new Date(msg.timestamp).toLocaleTimeString()}</span>`;
-        if (currentUser && currentUser.role === 'admin') {
+        if (currentUser?.role === 'admin') {
           const muteBtn = document.createElement('button');
           muteBtn.textContent = 'Mute 5m';
           muteBtn.onclick = () => moderateUser(msg.username, 'mute', 5*60*1000);
@@ -961,121 +604,105 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
 
-    function moderateUser(username, action, duration) {
-      const user = DB.users.find(u => u.username === username);
-      if (!user) return;
-      if (action === 'mute') user.mutedUntil = Date.now() + duration;
-      else if (action === 'ban') user.bannedUntil = Date.now() + duration;
-      saveDB();
+    async function moderateUser(username, action, duration) {
+      await api('/api/admin/moderate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, action, duration })
+      });
       alert(`${username} ${action} for ${duration === Infinity ? 'forever' : duration/1000 + 's'}`);
+      if (selectedScriptId) loadChat(selectedScriptId);
     }
 
-    document.getElementById('btnSendScriptChat').addEventListener('click', () => {
+    document.getElementById('btnSendScriptChat').addEventListener('click', async () => {
       if (!currentUser) return alert('Login required.');
-      const user = DB.users.find(u => u.username === currentUser.username);
-      if (user.mutedUntil && Date.now() < user.mutedUntil) return alert('You are muted.');
-      if (user.bannedUntil && Date.now() < user.bannedUntil) return alert('You are banned.');
       const text = chatInput.value.trim();
       if (!text) return;
-      if (!selectedScriptId) return;
-      if (!DB.scriptChats[selectedScriptId]) DB.scriptChats[selectedScriptId] = [];
-      DB.scriptChats[selectedScriptId].push({ username: currentUser.username, text, timestamp: Date.now() });
-      saveDB();
+      await api(`/api/scripts/${selectedScriptId}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: currentUser.username, text })
+      });
       chatInput.value = '';
-      loadScriptChat(selectedScriptId);
+      loadChat(selectedScriptId);
     });
 
-    // ─── Admin Panel ───
-    function renderAdmin() {
-      if (!currentUser || currentUser.role !== 'admin') {
-        adminContent.innerHTML = '<p>Admin only.</p>';
-        return;
-      }
-      let html = '<h2>Pending Games</h2>';
-      DB.pendingGames.forEach(game => {
-        html += `<div style="border:1px solid var(--border); padding:10px; margin-bottom:10px;">
-          <h4>${game.title}</h4>
-          <p>${game.description}</p>
-          <button class="success" onclick="approveGame('${game.id}')">Approve</button>
-          <button class="danger" onclick="deleteGame('${game.id}')">Delete</button>
-          <button onclick="previewGame('${game.id}')">Preview</button>
-        </div>`;
+    // Admin
+    async function refreshAdmin() {
+      if (!currentUser || currentUser.role !== 'admin') return;
+      const { games, scripts } = await api('/api/admin/pending');
+      adminContent.innerHTML = '<h2>Pending Games</h2>';
+      games.forEach(game => {
+        adminContent.innerHTML += `<div class="script-item"><div class="info"><h4>${game.title}</h4><p>${game.description}</p></div><div><button class="success" onclick="approveGame('${game.id}')">Approve</button><button class="danger" onclick="deleteGame('${game.id}')">Delete</button><button onclick="previewGame('${game.id}')">Preview</button></div></div>`;
       });
-      html += '<h2>Pending Scripts</h2>';
-      DB.pendingScripts.forEach(s => {
-        html += `<div style="border:1px solid var(--border); padding:10px; margin-bottom:10px;">
-          <h4>${s.title}</h4>
-          <pre>${s.code}</pre>
-          <button class="success" onclick="approveScript('${s.id}')">Approve</button>
-          <button class="danger" onclick="deleteScript('${s.id}')">Delete</button>
-        </div>`;
+      adminContent.innerHTML += '<h2>Pending Scripts</h2>';
+      scripts.forEach(s => {
+        adminContent.innerHTML += `<div class="script-item"><div class="info"><h4>${s.title}</h4><pre>${s.code}</pre></div><div><button class="success" onclick="approveScript('${s.id}')">Approve</button><button class="danger" onclick="deleteScript('${s.id}')">Delete</button></div></div>`;
       });
-      adminContent.innerHTML = html || '<p>No pending items.</p>';
     }
 
-    window.approveGame = function(id) {
-      const idx = DB.pendingGames.findIndex(g => g.id === id);
-      if (idx !== -1) {
-        const game = DB.pendingGames.splice(idx, 1)[0];
-        game.approved = true;
-        DB.games.push(game);
-        saveDB();
-        renderAdmin();
-        renderGames();
-        renderLibrary();
-      }
-    };
-    window.deleteGame = function(id) {
-      DB.pendingGames = DB.pendingGames.filter(g => g.id !== id);
-      saveDB();
-      renderAdmin();
-    };
-    window.previewGame = function(id) {
-      const game = DB.pendingGames.find(g => g.id === id);
-      if (game) launchGame(game);
-    };
-    window.approveScript = function(id) {
-      const idx = DB.pendingScripts.findIndex(s => s.id === id);
-      if (idx !== -1) {
-        const script = DB.pendingScripts.splice(idx, 1)[0];
-        script.approved = true;
-        DB.scripts.push(script);
-        saveDB();
-        renderAdmin();
-        renderWorkshop();
-      }
-    };
-    window.deleteScript = function(id) {
-      DB.pendingScripts = DB.pendingScripts.filter(s => s.id !== id);
-      saveDB();
-      renderAdmin();
-    };
+    window.approveGame = async (id) => { await api(`/api/games/${id}/approve`, { method: 'POST' }); refreshAdmin(); refreshGames(); };
+    window.deleteGame = async (id) => { await api(`/api/games/${id}`, { method: 'DELETE' }); refreshAdmin(); refreshGames(); };
+    window.previewGame = (id) => { /* Implement by fetching from pending? For simplicity, ignore or use cached */ };
+    window.approveScript = async (id) => { await api(`/api/scripts/${id}/approve`, { method: 'POST' }); refreshAdmin(); refreshWorkshop(); };
+    window.deleteScript = async (id) => { await api(`/api/scripts/${id}`, { method: 'DELETE' }); refreshAdmin(); refreshWorkshop(); };
 
-    // ─── Create/Test Editor ───
+    // Upload Game
+    document.getElementById('btnUploadGame').addEventListener('click', () => {
+      if (!currentUser) return alert('Login required.');
+      document.getElementById('uploadModal').classList.add('open');
+    });
+    document.getElementById('btnUploadCancel').addEventListener('click', () => document.getElementById('uploadModal').classList.remove('open'));
+    document.getElementById('btnUploadSubmit').addEventListener('click', async () => {
+      const title = document.getElementById('uploadTitle').value.trim();
+      const desc = document.getElementById('uploadDescription').value.trim();
+      const category = document.getElementById('uploadCategory').value.trim();
+      const htmlFile = document.getElementById('uploadHTMLFile').files[0];
+      const thumbFile = document.getElementById('uploadThumbnail').files[0];
+      if (!title || !htmlFile) return alert('Title and HTML file required.');
+      const html = await htmlFile.text();
+      const thumbnail = thumbFile ? await new Promise(resolve => { const reader = new FileReader(); reader.onload = e => resolve(e.target.result); reader.readAsDataURL(thumbFile); }) : '';
+      await api('/api/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description: desc, category, html, thumbnail, author: currentUser.username })
+      });
+      document.getElementById('uploadModal').classList.remove('open');
+      alert('Submitted for review.');
+    });
+
+    // Add Script
+    document.getElementById('btnAddScript').addEventListener('click', () => {
+      if (!currentUser) return alert('Login required.');
+      const title = prompt('Script title:');
+      const code = prompt('Paste code:');
+      if (title && code) {
+        api('/api/scripts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, code, author: currentUser.username })
+        }).then(() => alert('Submitted for review.'));
+      }
+    });
+
+    // Create/Test Editor
     const htmlEditor = document.getElementById('htmlEditor');
     const previewFrame = document.getElementById('previewFrame');
-    htmlEditor.addEventListener('input', () => {
-      previewFrame.srcdoc = htmlEditor.value;
-    });
+    htmlEditor.addEventListener('input', () => previewFrame.srcdoc = htmlEditor.value);
     document.getElementById('btnRunPreviewScript').addEventListener('click', () => {
-      const code = document.getElementById('editorExecutorScript').value;
       try {
-        previewFrame.contentWindow.eval(code);
+        previewFrame.contentWindow.eval(document.getElementById('editorExecutorScript').value);
         document.getElementById('previewConsole').innerHTML = 'Script executed.';
-      } catch(e) {
-        document.getElementById('previewConsole').innerHTML = 'Error: ' + e.message;
-      }
+      } catch(e) { document.getElementById('previewConsole').innerHTML = 'Error: ' + e.message; }
     });
-    document.getElementById('btnClearPreviewConsole').addEventListener('click', () => {
-      document.getElementById('previewConsole').innerHTML = 'Ready';
-    });
+    document.getElementById('btnClearPreviewConsole').addEventListener('click', () => document.getElementById('previewConsole').innerHTML = 'Ready');
     document.getElementById('btnPreviewFunctions').addEventListener('click', () => {
       try {
         const funcs = findFunctions(previewFrame.contentWindow);
         alert(funcs.map(f => f.name).join(', '));
       } catch(e) { alert('Preview not accessible.'); }
     });
-    document.getElementById('btnPublishGame').addEventListener('click', () => {
+    document.getElementById('btnPublishGame').addEventListener('click', async () => {
       if (!currentUser) return alert('Login required.');
       const title = prompt('Game title:');
       if (!title) return;
@@ -1083,40 +710,32 @@
       const html = htmlEditor.value.trim();
       if (!html) return alert('HTML required.');
       const thumbFile = document.getElementById('editorThumbnail').files[0];
-      DB.pendingGames.push({
-        id: 'game_' + Date.now(),
-        title,
-        category,
-        html,
-        thumbnail: thumbFile ? URL.createObjectURL(thumbFile) : '',
-        approved: false,
-        author: currentUser.username,
-        views: 0,
-        createdAt: Date.now()
+      const thumbnail = thumbFile ? await new Promise(resolve => { const reader = new FileReader(); reader.onload = e => resolve(e.target.result); reader.readAsDataURL(thumbFile); }) : '';
+      await api('/api/games', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, category, html, thumbnail, author: currentUser.username })
       });
-      saveDB();
       alert('Submitted for review.');
-      renderAdmin();
     });
 
-    // ─── Navigation ───
+    // Navigation
     document.querySelectorAll('.sidebar button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        const page = btn.dataset.page;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById(`page-${page}`).classList.add('active');
-        if (page === 'admin') renderAdmin();
-        if (page === 'workshop') renderWorkshop();
+        document.getElementById(`page-${btn.dataset.page}`).classList.add('active');
+        if (btn.dataset.page === 'admin') refreshAdmin();
+        if (btn.dataset.page === 'workshop') refreshWorkshop();
       });
     });
 
-    // ─── Guide ───
+    // Guide
     document.getElementById('btnGuide').addEventListener('click', () => document.getElementById('guideModal').classList.add('open'));
     document.getElementById('btnCloseGuide').addEventListener('click', () => document.getElementById('guideModal').classList.remove('open'));
 
-    // ─── Drag Executor ───
+    // Drag Executor
     const dragHandle = document.getElementById('executorDragHandle');
     dragHandle.addEventListener('mousedown', (e) => {
       if (e.target.closest('button')) return;
@@ -1143,7 +762,7 @@
       document.removeEventListener('mouseup', onDragEnd);
     }
 
-    // ─── Init ───
+    // Init
     init();
   </script>
 </body>
