@@ -1,0 +1,18 @@
+[
+  {
+    "id": "game1",
+    "title": "Game 1",
+    "file": "games/game1.html",
+    "thumbnail": "thumbnails/game1.jpg",
+    "category": "Action",
+    "description": "First game"
+  },
+  {
+    "id": "game2",
+    "title": "Game 2",
+    "file": "games/game2.html",
+    "thumbnail": "thumbnails/game2.jpg",
+    "category": "Puzzle",
+    "description": "Second game"
+  }
+]

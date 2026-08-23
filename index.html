@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GameHub Classic</title>
+  <style>
+    /* ── CSS Variables (Light Mode Default) ── */
+    :root {
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --border: #d0d5dd;
+      --text: #1e293b;
+      --muted: #64748b;
+      --accent: #555555;
+      --accent-hover: #333333;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08);
+      --radius: 6px;
+      --font: 'Segoe UI', Arial, sans-serif;
+      --overlay-bg: #1a1a1a;
+      --executor-bg: #ffffff;
+      --executor-console-bg: #1a1a1a;
+      --executor-console-text: #e0e0e0;
+    }
+    body.dark-mode {
+      --bg: #1a1a1a;
+      --panel: #2d2d2d;
+      --border: #444444;
+      --text: #e0e0e0;
+      --muted: #aaaaaa;
+      --accent: #888888;
+      --accent-hover: #aaaaaa;
+      --danger: #f87171;
+      --success: #4ade80;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+      --executor-bg: #2d2d2d;
+      --executor-console-bg: #1a1a1a;
+      --executor-console-text: #e0e0e0;
+      --overlay-bg: #1a1a1a;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.2s, color 0.2s;
+    }
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      transition: 0.2s;
+    }
+    button:hover { background: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.primary:hover { background: var(--accent-hover); }
+    button.danger { color: var(--danger); }
+    button.danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
+    input, select, textarea {
+      font-family: inherit;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 10px;
+      font-size: 13px;
+      background: var(--panel);
+      color: var(--text);
+      width: 100%;
+    }
+    textarea { font-family: 'Consolas', 'Monaco', monospace; resize: vertical; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Top Bar ── */
+    .topbar {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 20px; }
+    .logo { font-size: 18px; font-weight: 700; color: var(--accent); }
+    .topbar-right { display: flex; gap: 10px; align-items: center; }
+    .dark-mode-toggle {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* ── Layout ── */
+    .app-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+    .sidebar {
+      width: 200px;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      padding: 16px 0;
+      flex-shrink: 0;
+      overflow-y: auto;
+    }
+    .sidebar button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 20px;
+      border: none;
+      background: transparent;
+      border-radius: 0;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .sidebar button:hover { background: var(--bg); color: var(--text); }
+    .sidebar button.active { background: var(--bg); color: var(--text); border-left: 3px solid var(--accent); }
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .page-header h1 { font-size: 22px; font-weight: 600; }
+
+    /* ── Game Grid ── */
+    .game-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .game-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .game-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .game-card img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      background: var(--bg);
+      display: block;
+    }
+    .game-card .info { padding: 10px 12px; }
+    .game-card .info h3 {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+    }
+    .game-card .info .meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .game-card .badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: var(--success);
+      color: white;
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .view-count { display: flex; align-items: center; gap: 4px; }
+
+    /* ── Filter Bar ── */
+    .filter-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .filter-bar input, .filter-bar select {
+      width: auto;
+    }
+    .filter-bar .search { flex: 1; min-width: 200px; }
+
+    /* ── Workshop ── */
+    .workshop-list { display: flex; flex-direction: column; gap: 10px; }
+    .script-item {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .script-item .info { flex: 1; }
+    .script-item .info .title { font-weight: 600; }
+    .script-item .info .meta { font-size: 12px; color: var(--muted); }
+
+    /* ── Create / Test Editor ── */
+    .editor-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      height: 70vh;
+    }
+    .editor-pane, .preview-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .editor-pane textarea { flex: 1; min-height: 200px; }
+    .preview-pane iframe {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: white;
+    }
+    .console-output {
+      background: var(--executor-console-bg);
+      color: var(--executor-console-text);
+      font-family: 'Consolas', monospace;
+      font-size: 12px;
+      padding: 8px;
+      border-radius: var(--radius);
+      min-height: 80px;
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    /* ── Fullscreen Game Overlay ── */
+    .game-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay-bg);
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+    }
+    .game-overlay.open { display: flex; }
+    .game-overlay-top {
+      background: var(--panel);
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+    .game-overlay-top .title { font-weight: 600; }
+    .game-overlay-top .actions { display: flex; gap: 8px; }
+    .game-iframe-container {
+      flex: 1;
+      position: relative;
+    }
+    .game-iframe-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: white;
+    }
+
+    /* ── Draggable Executor Window ── */
+    .executor-window {
+      position: fixed;
+      top: 60px;
+      right: 20px;
+      width: 450px;
+      max-width: 90vw;
+      max-height: 80vh;
+      background: var(--executor-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      z-index: 600;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .executor-window.open { display: flex; }
+    .executor-header {
+      background: var(--panel);
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: grab;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .executor-header:active { cursor: grabbing; }
+    .executor-header .status {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: 8px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: var(--bg);
+    }
+    .executor-header .status.attached { background: var(--success); color: white; }
+    .executor-body {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .executor-body .row { display: flex; gap: 8px; align-items: center; }
+    .executor-body textarea { min-height: 120px; width: 100%; }
+    .executor-body .console {
+      background: var(--executor-console-bg);
+      color: var(--executor-console-text);
+      font-family: 'Consolas', monospace;
+      font-size: 12px;
+      padding: 8px;
+      border-radius: var(--radius);
+      min-height: 80px;
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+    .function-list {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      max-height: 150px;
+      overflow-y: auto;
+      padding: 8px;
+      font-family: 'Consolas', monospace;
+      font-size: 12px;
+    }
+    .function-list .func-item {
+      padding: 3px 6px;
+      cursor: pointer;
+      border-radius: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .function-list .func-item:hover { background: var(--bg); }
+    .function-list .func-type { color: var(--muted); font-size: 10px; }
+
+    /* Executor Tabs */
+    .executor-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+      flex-wrap: wrap;
+    }
+    .executor-tabs button {
+      padding: 4px 12px;
+      font-size: 12px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .executor-tabs button.active {
+      background: var(--bg);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    /* Live event copy button style */
+    .live-event button {
+      font-size: 10px;
+      padding: 1px 8px;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      cursor: pointer;
+      color: var(--text);
+    }
+    .live-event button:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* ── Modal ── */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 700;
+    }
+    .modal.open { display: flex; }
+    .modal-box {
+      background: var(--panel);
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .modal-box h3 { margin-bottom: 8px; }
+    .modal-box p { color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <span class="logo">GameHub</span>
+    </div>
+    <div class="topbar-right">
+      <button class="dark-mode-toggle" id="darkModeToggle">Dark</button>
+      <button id="btnGuide">Guide</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <nav class="sidebar" id="sidebar">
+      <button class="active" data-page="games">Games</button>
+      <button data-page="library">Library</button>
+      <button data-page="workshop">Workshop</button>
+      <button data-page="create">Create / Test</button>
+    </nav>
+
+    <main class="content">
+      <div class="page active" id="page-games">
+        <div class="page-header">
+          <h1>Available Games</h1>
+        </div>
+        <div class="filter-bar">
+          <input type="text" id="searchInput" class="search" placeholder="Search games..." />
+          <select id="categoryFilter">
+            <option value="all">All Categories</option>
+          </select>
+          <select id="sortFilter">
+            <option value="popular">Most Popular</option>
+            <option value="newest">Newest</option>
+            <option value="title">Alphabetical</option>
+          </select>
+        </div>
+        <div class="game-grid" id="gameGrid"></div>
+      </div>
+
+      <div class="page" id="page-library">
+        <div class="page-header">
+          <h1>My Library</h1>
+        </div>
+        <div id="libraryContent"></div>
+      </div>
+
+      <div class="page" id="page-workshop">
+        <div class="page-header">
+          <h1>Script Workshop</h1>
+          <div style="display:flex; gap:8px;">
+            <select id="workshopGameSelect"></select>
+            <button class="primary" id="btnAddScript">Add Script</button>
+          </div>
+        </div>
+        <div class="workshop-list" id="workshopList"></div>
+      </div>
+
+      <div class="page" id="page-create">
+        <div class="page-header">
+          <h1>Create & Test Game</h1>
+          <button class="primary" id="btnPublish">Publish Game</button>
+        </div>
+        <div class="editor-container">
+          <div class="editor-pane">
+            <label>HTML Code</label>
+            <textarea id="htmlEditor" placeholder="Paste your HTML game code here..."></textarea>
+          </div>
+          <div class="preview-pane">
+            <label>Preview</label>
+            <iframe id="previewFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+            <label>Executor Script</label>
+            <textarea id="executorScript" placeholder="Write JavaScript to run in the preview..."></textarea>
+            <div style="display:flex; gap:8px;">
+              <button class="primary" id="btnRunScript">Run</button>
+              <button id="btnClearConsole">Clear Console</button>
+              <button id="btnFindFunctionsCreate">Functions</button>
+            </div>
+            <div class="console-output" id="createConsole">Ready. Type HTML, then write script, click Run.</div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Fullscreen Game Overlay -->
+  <div class="game-overlay" id="gameOverlay">
+    <div class="game-overlay-top">
+      <span class="title" id="gameTitle">Game</span>
+      <div class="actions">
+        <button class="primary" id="btnToggleExecutor">Executor</button>
+        <button class="danger" id="btnCloseGame">Close</button>
+      </div>
+    </div>
+    <div class="game-iframe-container">
+      <iframe id="gameFrame" sandbox="allow-scripts allow-same-origin"></iframe>
+    </div>
+  </div>
+
+  <!-- Draggable Executor Window -->
+  <div class="executor-window" id="executorWindow">
+    <div class="executor-header" id="executorDragHandle">
+      <div>
+        Executor
+        <span class="status" id="executorStatus">Not attached</span>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button id="btnAttach" class="primary" style="font-size:12px;">Attach</button>
+        <button id="btnCloseGameFromExec" class="danger" style="font-size:12px;">Close Game</button>
+        <button id="btnMinimize" style="font-size:12px;">&#8211;</button>
+        <button id="btnCloseExecutor" class="danger" style="font-size:12px;">&#10005;</button>
+      </div>
+    </div>
+    <div class="executor-body">
+      <div class="executor-tabs" id="executorTabs">
+        <button class="active" data-tab="editor">Editor</button>
+        <button data-tab="scripts">Scripts</button>
+        <button data-tab="functions">Functions</button>
+        <button data-tab="live">Live Spy</button>
+        <button data-tab="html">HTML</button>
+        <button data-tab="secrets">Secrets</button>
+      </div>
+
+      <div id="tab-editor" class="tab-content">
+        <div class="row">
+          <span style="font-size:13px; color:var(--muted);">Script (JavaScript)</span>
+        </div>
+        <textarea id="scriptEditor" spellcheck="false">// Write script here</textarea>
+        <div class="row">
+          <button id="btnRun" class="primary">Run</button>
+          <button id="btnClearConsole2">Clear Console</button>
+        </div>
+        <div class="console" id="console">Ready. Attach to a game to begin.</div>
+      </div>
+
+      <div id="tab-scripts" class="tab-content" style="display:none;">
+        <div id="premadeScriptsList" style="display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto;">
+          <div style="color:var(--muted);">Attach to a game to see premade cheat scripts.</div>
+        </div>
+      </div>
+
+      <div id="tab-functions" class="tab-content" style="display:none;">
+        <button id="btnFindFunctions" class="primary" style="width:100%;">Scan Functions</button>
+        <div class="function-list" id="functionList" style="margin-top:8px;"></div>
+      </div>
+
+      <div id="tab-live" class="tab-content" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+          <span style="font-size:13px; color:var(--muted);">Real‑time spy output</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <label style="font-size:12px; display:flex; align-items:center; gap:4px;">
+              <input type="checkbox" id="spyWatchDOM" checked /> Watch DOM
+            </label>
+            <button id="btnClearLive" style="font-size:12px;">Clear</button>
+          </div>
+        </div>
+        <div class="console" id="liveConsole" style="max-height:200px;">> Live spy ready. Attach to start.</div>
+      </div>
+
+      <div id="tab-html" class="tab-content" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:13px; color:var(--muted);">Game HTML source</span>
+          <button id="btnCopyHTML" class="primary" style="font-size:12px;">Copy HTML</button>
+        </div>
+        <textarea id="gameHTMLView" readonly style="min-height:150px; font-family:monospace; font-size:12px;"></textarea>
+      </div>
+
+      <div id="tab-secrets" class="tab-content" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:13px; color:var(--muted);">Secret / Code Finder</span>
+          <button id="btnScanSecrets" class="primary" style="font-size:12px;">Scan Game</button>
+        </div>
+        <div class="console" id="secretsConsole" style="max-height:250px;">> Click Scan to search for secret codes.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guide Modal -->
+  <div class="modal" id="guideModal">
+    <div class="modal-box">
+      <h3>Guide</h3>
+      <p>
+        <strong>Games</strong> - browse, search, filter, launch.<br>
+        <strong>Library</strong> - games you've added or uploaded.<br>
+        <strong>Workshop</strong> - community scripts per game.<br>
+        <strong>Create / Test</strong> - write HTML, preview, run scripts, publish.<br>
+        <strong>Executor</strong> - attach, run scripts, find functions, premade cheats, live spy, HTML viewer, secret finder.
+      </p>
+      <div class="modal-actions">
+        <button id="btnCloseGuide">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── State ───
+    let games = [];
+    let userGames = [];
+    let library = JSON.parse(localStorage.getItem('gamehub_library') || '[]');
+    let views = JSON.parse(localStorage.getItem('gamehub_views') || '{}');
+    let workshopScripts = JSON.parse(localStorage.getItem('gamehub_workshop') || '{}');
+    let settings = JSON.parse(localStorage.getItem('gamehub_settings') || '{"darkMode":false}');
+
+    let currentGame = null;
+    let attachedWindow = null;
+    let executorOpen = false;
+    let dragData = null;
+    let premadeScripts = [];
+    let liveSpyActive = false;
+    let domObserver = null;
+
+    // ─── DOM Elements ───
+    const gameGrid = document.getElementById('gameGrid');
+    const libraryContent = document.getElementById('libraryContent');
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const workshopGameSelect = document.getElementById('workshopGameSelect');
+    const workshopList = document.getElementById('workshopList');
+    const htmlEditor = document.getElementById('htmlEditor');
+    const previewFrame = document.getElementById('previewFrame');
+    const executorScript = document.getElementById('executorScript');
+    const createConsole = document.getElementById('createConsole');
+    const gameOverlay = document.getElementById('gameOverlay');
+    const gameFrame = document.getElementById('gameFrame');
+    const gameTitle = document.getElementById('gameTitle');
+    const executorWindow = document.getElementById('executorWindow');
+    const executorStatus = document.getElementById('executorStatus');
+    const scriptEditor = document.getElementById('scriptEditor');
+    const consoleEl = document.getElementById('console');
+    const functionList = document.getElementById('functionList');
+    const guideModal = document.getElementById('guideModal');
+    const premadeScriptsList = document.getElementById('premadeScriptsList');
+    const liveConsole = document.getElementById('liveConsole');
+    const btnClearLive = document.getElementById('btnClearLive');
+    const spyWatchDOM = document.getElementById('spyWatchDOM');
+    const gameHTMLView = document.getElementById('gameHTMLView');
+    const btnCopyHTML = document.getElementById('btnCopyHTML');
+    const secretsConsole = document.getElementById('secretsConsole');
+
+    // ─── Dark Mode ───
+    function applyDarkMode() {
+      if (settings.darkMode) {
+        document.body.classList.add('dark-mode');
+        document.getElementById('darkModeToggle').textContent = 'Light';
+      } else {
+        document.body.classList.remove('dark-mode');
+        document.getElementById('darkModeToggle').textContent = 'Dark';
+      }
+    }
+    document.getElementById('darkModeToggle').addEventListener('click', () => {
+      settings.darkMode = !settings.darkMode;
+      localStorage.setItem('gamehub_settings', JSON.stringify(settings));
+      applyDarkMode();
+    });
+
+    // ─── Load Games from games.json ───
+    async function loadGames() {
+      try {
+        const response = await fetch('games.json');
+        if (!response.ok) throw new Error('games.json not found');
+        games = await response.json();
+      } catch (err) {
+        console.warn('Could not load games.json, using empty list.', err);
+        games = [];
+      }
+      userGames = [];
+      localStorage.removeItem('gamehub_userGames');
+      updateCategories();
+      renderGames();
+      renderLibrary();
+      renderWorkshopSelector();
+      applyDarkMode();
+    }
+
+    function updateCategories() {
+      const allGames = getAllGames();
+      const cats = [...new Set(allGames.map(g => g.category || 'Uncategorized'))];
+      categoryFilter.innerHTML = '<option value="all">All Categories</option>';
+      cats.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        categoryFilter.appendChild(opt);
+      });
+    }
+
+    function getAllGames() {
+      return [...games, ...userGames];
+    }
+
+    function renderGames() {
+      const all = getAllGames();
+      const searchTerm = searchInput.value.toLowerCase();
+      const cat = categoryFilter.value;
+      const sort = sortFilter.value;
+
+      let filtered = all.filter(g => {
+        const matchSearch = g.title.toLowerCase().includes(searchTerm) || (g.description || '').toLowerCase().includes(searchTerm);
+        const matchCat = cat === 'all' || g.category === cat;
+        return matchSearch && matchCat;
+      });
+
+      if (sort === 'popular') {
+        filtered.sort((a, b) => (views[b.id] || 0) - (views[a.id] || 0));
+      } else if (sort === 'newest') {
+        filtered.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      } else if (sort === 'title') {
+        filtered.sort((a, b) => a.title.localeCompare(b.title));
+      }
+
+      gameGrid.innerHTML = '';
+      filtered.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.innerHTML = `
+          <img src="${game.thumbnail || ''}" alt="${game.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjExMiIgdmlld0JveD0iMCAwIDIwMCAxMTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UyZThmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjQ3NDhiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='">
+          <div class="badge">FREE</div>
+          <div class="info">
+            <h3>${game.title}</h3>
+            <div class="meta">
+              <span>${game.category || 'Uncategorized'}</span>
+              <span class="view-count">Views: ${views[game.id] || 0}</span>
+            </div>
+          </div>
+        `;
+        card.addEventListener('click', () => launchGame(game));
+        gameGrid.appendChild(card);
+      });
+    }
+
+    function renderLibrary() {
+      const all = getAllGames();
+      const owned = library.map(id => all.find(g => g.id === id)).filter(g => g);
+      if (owned.length === 0) {
+        libraryContent.innerHTML = '<p style="color:var(--muted);">No games yet. Add from Games tab or Create.</p>';
+        return;
+      }
+      libraryContent.innerHTML = '<div class="game-grid"></div>';
+      const grid = libraryContent.querySelector('.game-grid');
+      owned.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.innerHTML = `
+          <img src="${game.thumbnail || ''}" alt="${game.title}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjExMiIgdmlld0JveD0iMCAwIDIwMCAxMTIiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2UyZThmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LXNpemU9IjE2IiBmaWxsPSIjNjQ3NDhiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIj5ObyBJbWFnZTwvdGV4dD48L3N2Zz4='">
+          <div class="info">
+            <h3>${game.title}</h3>
+            <div class="meta">
+              <span>${game.category || 'Uncategorized'}</span>
+              <span class="view-count">Views: ${views[game.id] || 0}</span>
+            </div>
+          </div>
+        `;
+        card.addEventListener('click', () => launchGame(game));
+        grid.appendChild(card);
+      });
+    }
+
+    function launchGame(game) {
+      currentGame = game;
+      gameTitle.textContent = game.title;
+      views[game.id] = (views[game.id] || 0) + 1;
+      localStorage.setItem('gamehub_views', JSON.stringify(views));
+      gameOverlay.classList.add('open');
+
+      attachedWindow = null;
+      executorStatus.textContent = 'Not attached';
+      executorStatus.className = 'status';
+      if (!executorWindow.classList.contains('open')) toggleExecutor(true);
+      consoleEl.innerHTML = 'Game launched. Click Attach to connect executor.';
+      premadeScriptsList.innerHTML = '<div style="color:var(--muted);">Attach to a game to see premade cheat scripts.</div>';
+      liveConsole.innerHTML = '> Live spy ready. Attach to start.';
+      gameHTMLView.value = '';
+      secretsConsole.innerHTML = '> Click Scan to search for secret codes.';
+
+      if (game.file) {
+        const url = new URL(game.file, window.location.href);
+        url.searchParams.set('_', Date.now());
+        gameFrame.src = url.toString();
+      } else if (game.html) {
+        gameFrame.srcdoc = game.html;
+      }
+    }
+
+    function closeGame() {
+      gameOverlay.classList.remove('open');
+      gameFrame.src = 'about:blank';
+      currentGame = null;
+      attachedWindow = null;
+      executorStatus.textContent = 'Not attached';
+      executorStatus.className = 'status';
+      premadeScriptsList.innerHTML = '<div style="color:var(--muted);">Attach to a game to see premade cheat scripts.</div>';
+      liveConsole.innerHTML = '> Live spy inactive.';
+      gameHTMLView.value = '';
+      secretsConsole.innerHTML = '> Click Scan to search for secret codes.';
+      if (domObserver) { domObserver.disconnect(); domObserver = null; }
+      document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-page="games"]').classList.add('active');
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-games').classList.add('active');
+    }
+
+    function toggleExecutor(open) {
+      if (open === undefined) open = !executorWindow.classList.contains('open');
+      if (open) {
+        executorWindow.classList.add('open');
+        executorOpen = true;
+      } else {
+        executorWindow.classList.remove('open');
+        executorOpen = false;
+      }
+    }
+    document.getElementById('btnToggleExecutor').addEventListener('click', () => toggleExecutor());
+    document.getElementById('btnCloseExecutor').addEventListener('click', () => toggleExecutor(false));
+    document.getElementById('btnMinimize').addEventListener('click', () => toggleExecutor(false));
+    document.getElementById('btnCloseGameFromExec').addEventListener('click', closeGame);
+
+    function attachExecutor() {
+      if (!currentGame || !gameOverlay.classList.contains('open')) {
+        consoleEl.innerHTML = 'No game running. Launch a game first.';
+        return;
+      }
+      try {
+        attachedWindow = gameFrame.contentWindow;
+        executorStatus.textContent = 'Attached';
+        executorStatus.className = 'status attached';
+        consoleEl.innerHTML = 'Executor attached successfully.';
+        generatePremadeScripts(attachedWindow);
+        setupLiveSpy(attachedWindow);
+        gameHTMLView.value = attachedWindow.document.documentElement.outerHTML;
+      } catch (err) {
+        attachedWindow = null;
+        executorStatus.textContent = 'Not attached';
+        executorStatus.className = 'status';
+        consoleEl.innerHTML = 'Attachment failed. Ensure game is same-origin.';
+      }
+    }
+    document.getElementById('btnAttach').addEventListener('click', attachExecutor);
+
+    function runScript() {
+      if (!attachedWindow) {
+        consoleEl.innerHTML = 'Not attached. Click Attach first.';
+        return;
+      }
+      const code = scriptEditor.value;
+      if (!code.trim()) {
+        consoleEl.innerHTML = 'Script empty.';
+        return;
+      }
+      try {
+        attachedWindow.eval(code);
+        consoleEl.innerHTML += '\nScript executed.';
+      } catch (err) {
+        consoleEl.innerHTML += `\nError: ${err.message}`;
+      }
+    }
+    document.getElementById('btnRun').addEventListener('click', runScript);
+    document.getElementById('btnClearConsole2').addEventListener('click', () => consoleEl.innerHTML = 'Console cleared.');
+
+    // ─── Tab switching ───
+    document.querySelectorAll('.executor-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.executor-tabs button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+        document.getElementById(`tab-${tab}`).style.display = 'block';
+      });
+    });
+
+    // ─── Function Finder ───
+    function findFunctions(targetWindow) {
+      if (!targetWindow) return [];
+      const keys = Object.keys(targetWindow);
+      const funcs = [];
+      for (const key of keys) {
+        try {
+          const val = targetWindow[key];
+          const type = typeof val;
+          if (type === 'function' || (type === 'object' && val !== null && !Array.isArray(val) && key !== 'window' && key !== 'document' && key !== 'top' && key !== 'parent')) {
+            funcs.push({ name: key, type: type });
+          }
+        } catch (e) { /* ignore */ }
+      }
+      return funcs;
+    }
+
+    function displayFunctions(targetWindow, listElement) {
+      const funcs = findFunctions(targetWindow);
+      listElement.innerHTML = '';
+      if (funcs.length === 0) {
+        listElement.innerHTML = '<div style="color:var(--muted);">No functions found. Are you attached?</div>';
+        return;
+      }
+      funcs.forEach(f => {
+        const item = document.createElement('div');
+        item.className = 'func-item';
+        item.innerHTML = `<span>${f.name}</span><span class="func-type">${f.type}</span>`;
+        item.title = `Click to copy name`;
+        item.addEventListener('click', () => {
+          navigator.clipboard.writeText(f.name);
+          alert(`Copied "${f.name}" to clipboard`);
+        });
+        listElement.appendChild(item);
+      });
+      listElement.style.display = 'block';
+    }
+
+    document.getElementById('btnFindFunctions').addEventListener('click', () => {
+      if (!attachedWindow) {
+        consoleEl.innerHTML = 'Not attached. Cannot find functions.';
+        return;
+      }
+      displayFunctions(attachedWindow, functionList);
+    });
+
+    // ─── Premade Cheat Scripts (Reduced for performance) ───
+    function generatePremadeScripts(targetWindow) {
+      const scripts = [];
+      const maxScripts = 50;
+      let count = 0;
+      function addScript(title, code) { if (count >= maxScripts) return; scripts.push({ title, code }); count++; }
+
+      const numericVars = ['coins','money','score','points','gold','cash','gems','health','hp','lives','ammo','energy','mana','stamina','level','xp','experience','time','timer','speed','damage','armor','shield','kills','waves','round','highScore','bestScore'];
+      for (const varName of numericVars) {
+        if (count >= maxScripts) break;
+        try {
+          const val = targetWindow[varName];
+          if (typeof val === 'number' && !isNaN(val)) {
+            addScript(`Set ${varName} to 999999`, `${varName} = 999999;`);
+            addScript(`Add 1000 ${varName}`, `${varName} += 1000;`);
+            addScript(`Set ${varName} to 0`, `${varName} = 0;`);
+            addScript(`Double ${varName}`, `${varName} *= 2;`);
+          }
+        } catch (e) {}
+      }
+
+      const objectNames = ['game','player','state','data','config','settings','stats','character','hero','gamedata','playerData','world','inventory','resources'];
+      for (const objName of objectNames) {
+        if (count >= maxScripts) break;
+        try {
+          const obj = targetWindow[objName];
+          if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+            for (const prop in obj) {
+              if (count >= maxScripts) break;
+              try {
+                const val = obj[prop];
+                if (typeof val === 'number' && !isNaN(val)) {
+                  addScript(`Set ${objName}.${prop} to 999999`, `${objName}.${prop} = 999999;`);
+                  addScript(`Add 1000 to ${objName}.${prop}`, `${objName}.${prop} += 1000;`);
+                } else if (typeof val === 'boolean') {
+                  addScript(`Toggle ${objName}.${prop}`, `${objName}.${prop} = !${objName}.${prop};`);
+                }
+              } catch (e) {}
+            }
+          }
+        } catch (e) {}
+      }
+
+      const commonFuncs = ['addCoins','addMoney','setCoins','setMoney','addScore','setScore','addHealth','setHealth','heal','damage','levelUp','winGame','loseGame','resetGame','godMode','invincible','unlockAll','addAmmo','setAmmo','addLives','setLives','speedHack','teleport','noclip','nuke','freeze','unlockEverything'];
+      for (const funcName of commonFuncs) {
+        if (count >= maxScripts) break;
+        try {
+          if (typeof targetWindow[funcName] === 'function') {
+            addScript(`Call ${funcName}()`, `${funcName}();`);
+          }
+        } catch (e) {}
+      }
+
+      addScript('Alert Hello', `alert('Hello from executor!');`);
+      addScript('Reload Game', `location.reload();`);
+      addScript('Change Background to Red', `document.body.style.background = 'red';`);
+      addScript('Show all keys', `console.log(Object.keys(window));`);
+
+      premadeScripts = scripts.slice(0, maxScripts);
+      renderPremadeScripts();
+    }
+
+    function renderPremadeScripts() {
+      premadeScriptsList.innerHTML = '';
+      if (premadeScripts.length === 0) {
+        premadeScriptsList.innerHTML = '<div style="color:var(--muted);">No cheat scripts found.</div>';
+        return;
+      }
+      premadeScripts.forEach(script => {
+        const btn = document.createElement('button');
+        btn.style.textAlign = 'left';
+        btn.style.marginBottom = '4px';
+        btn.innerHTML = script.title;
+        btn.addEventListener('click', () => {
+          scriptEditor.value = script.code;
+          document.querySelectorAll('.executor-tabs button').forEach(b => b.classList.remove('active'));
+          document.querySelector('[data-tab="editor"]').classList.add('active');
+          document.querySelectorAll('.tab-content').forEach(tc => tc.style.display = 'none');
+          document.getElementById('tab-editor').style.display = 'block';
+        });
+        premadeScriptsList.appendChild(btn);
+      });
+    }
+
+    // ─── Live Spy ───
+    function setupLiveSpy(targetWindow) {
+      if (domObserver) { domObserver.disconnect(); domObserver = null; }
+      const spyScript = `
+        (function() {
+          function send(type, args) {
+            try {
+              parent.postMessage({ source: 'gamehub-live-spy', type: type, message: Array.from(args).map(String).join(' ') }, '*');
+            } catch(e) {}
+          }
+          const origLog = console.log;
+          const origWarn = console.warn;
+          const origError = console.error;
+          const origInfo = console.info;
+          console.log = function(...args) { send('log', args); origLog.apply(console, args); };
+          console.warn = function(...args) { send('warn', args); origWarn.apply(console, args); };
+          console.error = function(...args) { send('error', args); origError.apply(console, args); };
+          console.info = function(...args) { send('info', args); origInfo.apply(console, args); };
+          window.addEventListener('error', function(e) { send('error', [e.message]); });
+          document.addEventListener('click', function(e) {
+            const target = e.target;
+            const info = { tag: target.tagName, id: target.id, className: target.className, text: target.textContent.trim().slice(0, 30) };
+            send('click', [JSON.stringify(info)]);
+          }, true);
+          document.addEventListener('keydown', function(e) { send('key', [e.key]); }, true);
+        })();
+      `;
+      try {
+        const script = targetWindow.document.createElement('script');
+        script.textContent = spyScript;
+        targetWindow.document.head.appendChild(script);
+        liveConsole.innerHTML = '> Live spy installed. Watching...';
+
+        if (spyWatchDOM.checked) {
+          const observer = new MutationObserver((mutations) => {
+            for (const mut of mutations) {
+              if (mut.type === 'childList' && mut.addedNodes.length > 0) {
+                for (const node of mut.addedNodes) {
+                  if (node.nodeType === 1 && node.textContent && node.textContent.trim()) {
+                    const text = node.textContent.trim();
+                    if (/\d/.test(text) || /coin|score|health|life|money/i.test(text)) {
+                      window.parent.postMessage({ source: 'gamehub-live-spy', type: 'dom', message: 'Added: ' + node.tagName + ' "' + text.slice(0,50) + '"' }, '*');
+                    }
+                  }
+                }
+              }
+              if (mut.type === 'characterData' && mut.target.textContent && /\d/.test(mut.target.textContent)) {
+                window.parent.postMessage({ source: 'gamehub-live-spy', type: 'dom', message: 'Text changed: ' + mut.target.parentElement.tagName + ' "' + mut.target.textContent.trim().slice(0,50) + '"' }, '*');
+              }
+            }
+          });
+          observer.observe(targetWindow.document.body, { childList: true, subtree: true, characterData: true, attributes: false });
+          domObserver = observer;
+        }
+      } catch (e) {
+        liveConsole.innerHTML = '> Failed to install spy: ' + e.message;
+      }
+    }
+
+    spyWatchDOM.addEventListener('change', () => {
+      if (attachedWindow && liveSpyActive) {
+        setupLiveSpy(attachedWindow);
+      }
+    });
+
+    // ─── Generate script from event ───
+    function generateEventScript(type, message) {
+      switch (type) {
+        case 'log':
+          return `console.log('${message}');`;
+        case 'warn':
+          return `console.warn('${message}');`;
+        case 'error':
+          return `console.error('${message}');`;
+        case 'info':
+          return `console.info('${message}');`;
+        case 'click':
+          try {
+            const info = JSON.parse(message);
+            let selector = '';
+            if (info.id) selector = `#${info.id}`;
+            else if (info.className) selector = `.${info.className.split(' ')[0]}`;
+            else selector = info.tag.toLowerCase();
+            return `document.querySelector('${selector}').click();`;
+          } catch (e) {
+            return `// Click event (could not parse target)\nconsole.log('Click event');`;
+          }
+        case 'key':
+          return `document.dispatchEvent(new KeyboardEvent('keydown', {key:'${message}'}));`;
+        case 'dom':
+          return `// DOM change detected: ${message}\nconsole.log('${message}');`;
+        default:
+          return `console.log('${message}');`;
+      }
+    }
+
+    // Listen for postMessage from spy (with copy button)
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.source === 'gamehub-live-spy') {
+        const msg = `[${e.data.type}] ${e.data.message}`;
+        const div = document.createElement('div');
+        div.className = 'live-event';
+        div.style.display = 'flex';
+        div.style.alignItems = 'center';
+        div.style.gap = '4px';
+        div.style.marginBottom = '2px';
+
+        const span = document.createElement('span');
+        span.textContent = msg;
+        span.style.color = e.data.type === 'error' ? 'var(--danger)' : e.data.type === 'warn' ? 'var(--success)' : 'var(--executor-console-text)';
+        div.appendChild(span);
+
+        const copyBtn = document.createElement('button');
+        copyBtn.textContent = 'Copy';
+        copyBtn.style.fontSize = '10px';
+        copyBtn.style.padding = '1px 8px';
+        copyBtn.style.border = '1px solid var(--border)';
+        copyBtn.style.background = 'var(--panel)';
+        copyBtn.style.cursor = 'pointer';
+        copyBtn.addEventListener('click', () => {
+          const script = generateEventScript(e.data.type, e.data.message);
+          navigator.clipboard.writeText(script).then(() => {
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => copyBtn.textContent = 'Copy', 1000);
+          });
+        });
+        div.appendChild(copyBtn);
+
+        liveConsole.appendChild(div);
+        liveConsole.scrollTop = liveConsole.scrollHeight;
+      }
+    });
+
+    btnClearLive.addEventListener('click', () => liveConsole.innerHTML = '> Cleared.');
+
+    // ─── Copy HTML button ───
+    btnCopyHTML.addEventListener('click', () => {
+      if (gameHTMLView.value) {
+        navigator.clipboard.writeText(gameHTMLView.value).then(() => alert('HTML copied!'));
+      } else {
+        alert('No HTML loaded. Attach to a game first.');
+      }
+    });
+
+    // ─── Secret Finder (Enhanced) ───
+    function scanForSecrets() {
+      if (!attachedWindow) {
+        secretsConsole.innerHTML = '> Not attached. Attach to a game first.';
+        return;
+      }
+      secretsConsole.innerHTML = '> Scanning...';
+
+      const keywords = ['password', 'pass', 'admin', 'secret', 'code', 'unlock', 'door', 'lock', 'key', 'token', 'pin', 'cheat', 'hack', 'god', 'debug', 'test'];
+      const results = [];
+
+      // 1. Scan global variables
+      for (const key in attachedWindow) {
+        try {
+          const val = attachedWindow[key];
+          if (typeof val === 'string') {
+            const lower = val.toLowerCase();
+            if (keywords.some(kw => lower.includes(kw))) {
+              results.push(`Global "${key}": "${val}"`);
+            }
+          } else if (typeof val === 'object' && val !== null && !Array.isArray(val) && key !== 'window' && key !== 'document') {
+            for (const prop in val) {
+              try {
+                const pval = val[prop];
+                if (typeof pval === 'string') {
+                  const plower = pval.toLowerCase();
+                  if (keywords.some(kw => plower.includes(kw))) {
+                    results.push(`Object ${key}.${prop}: "${pval}"`);
+                  }
+                }
+              } catch (e) {}
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 2. Scan DOM elements
+      try {
+        const doc = attachedWindow.document;
+        const elements = doc.querySelectorAll('input, textarea, select, [data-*], [id*="pass"], [id*="code"], [id*="admin"]');
+        elements.forEach(el => {
+          const val = el.value || el.textContent || el.getAttribute('data-code') || el.getAttribute('data-password') || '';
+          if (val && val.trim() && keywords.some(kw => val.toLowerCase().includes(kw))) {
+            results.push(`DOM element <${el.tagName}> (id="${el.id}"): "${val}"`);
+          }
+        });
+      } catch (e) {}
+
+      // 3. Scan HTML source for variable assignments and numeric codes
+      try {
+        const html = attachedWindow.document.documentElement.outerHTML;
+        const regex = /(?:var|let|const|window\.)?\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*["']([^"']+)["']/g;
+        let match;
+        while ((match = regex.exec(html)) !== null) {
+          const varName = match[1].toLowerCase();
+          const value = match[2];
+          if (keywords.some(kw => varName.includes(kw))) {
+            results.push(`Source variable "${match[1]}" = "${value}"`);
+          }
+        }
+        const potentialCodes = html.match(/\b\d{4,8}\b/g);
+        if (potentialCodes) {
+          const filtered = potentialCodes.filter(code => !/^(19|20)\d{2}$/.test(code) && !/^0+$/.test(code));
+          filtered.forEach(code => results.push(`Numeric code candidate: ${code}`));
+        }
+      } catch (e) {
+        results.push('> Could not scan HTML source (cross-origin?).');
+      }
+
+      if (results.length === 0) {
+        secretsConsole.innerHTML = '> No secret strings found.';
+      } else {
+        secretsConsole.innerHTML = '> Found possible secrets:\n' + results.join('\n');
+      }
+    }
+    document.getElementById('btnScanSecrets').addEventListener('click', scanForSecrets);
+
+    // ─── Workshop ───
+    function renderWorkshopSelector() {
+      const all = getAllGames();
+      workshopGameSelect.innerHTML = '';
+      all.forEach(game => {
+        const opt = document.createElement('option');
+        opt.value = game.id;
+        opt.textContent = game.title;
+        workshopGameSelect.appendChild(opt);
+      });
+      if (all.length > 0) renderWorkshopForGame(all[0].id);
+    }
+    function renderWorkshopForGame(gameId) {
+      const scripts = workshopScripts[gameId] || [];
+      workshopList.innerHTML = '';
+      if (scripts.length === 0) {
+        workshopList.innerHTML = '<p>No scripts yet. Be the first to add one!</p>';
+        return;
+      }
+      scripts.forEach(script => {
+        const item = document.createElement('div');
+        item.className = 'script-item';
+        item.innerHTML = `
+          <div class="info">
+            <div class="title">${script.title}</div>
+            <div class="meta">by ${script.author} · ${new Date(script.date).toLocaleDateString()}</div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="copy-btn" data-code="${encodeURIComponent(script.code)}">Copy</button>
+          </div>
+        `;
+        item.querySelector('.copy-btn').addEventListener('click', (e) => {
+          const code = decodeURIComponent(e.target.dataset.code);
+          navigator.clipboard.writeText(code).then(() => alert('Copied to clipboard!'));
+        });
+        workshopList.appendChild(item);
+      });
+    }
+    function addWorkshopScript() {
+      const gameId = workshopGameSelect.value;
+      const title = prompt('Script title:');
+      if (!title) return;
+      const code = prompt('Paste your script code:');
+      if (!code) return;
+      if (!workshopScripts[gameId]) workshopScripts[gameId] = [];
+      workshopScripts[gameId].push({ title, code, author: 'You', date: Date.now() });
+      localStorage.setItem('gamehub_workshop', JSON.stringify(workshopScripts));
+      renderWorkshopForGame(gameId);
+    }
+    document.getElementById('btnAddScript').addEventListener('click', addWorkshopScript);
+
+    // ─── Create / Test Editor ───
+    function updatePreview() { previewFrame.srcdoc = htmlEditor.value; }
+    htmlEditor.addEventListener('input', updatePreview);
+    function runCreateScript() {
+      const code = executorScript.value;
+      if (!code.trim()) { createConsole.innerHTML = 'Script empty.'; return; }
+      try {
+        previewFrame.contentWindow.eval(code);
+        createConsole.innerHTML = 'Script executed.';
+      } catch (err) { createConsole.innerHTML = `Error: ${err.message}`; }
+    }
+    document.getElementById('btnRunScript').addEventListener('click', runCreateScript);
+    document.getElementById('btnClearConsole').addEventListener('click', () => createConsole.innerHTML = 'Console cleared.');
+    document.getElementById('btnFindFunctionsCreate').addEventListener('click', () => {
+      try { displayFunctions(previewFrame.contentWindow, document.getElementById('createFunctionList')); } catch (err) { createConsole.innerHTML = 'Preview not accessible.'; }
+    });
+    function publishGame() {
+      const html = htmlEditor.value.trim();
+      if (!html) { alert('Please write some HTML code first.'); return; }
+      const title = prompt('Game title:');
+      if (!title) return;
+      const category = prompt('Category:') || 'Uncategorized';
+      const newGame = { id: 'user_' + Date.now(), title, html, category, thumbnail: '', description: 'Created in GameHub', createdAt: Date.now() };
+      userGames.push(newGame);
+      localStorage.setItem('gamehub_userGames', JSON.stringify(userGames));
+      updateCategories(); renderGames(); renderLibrary(); renderWorkshopSelector();
+      alert('Game published!');
+    }
+    document.getElementById('btnPublish').addEventListener('click', publishGame);
+
+    // ─── Navigation ───
+    document.querySelectorAll('.sidebar button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const page = btn.dataset.page;
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(`page-${page}`).classList.add('active');
+      });
+    });
+    searchInput.addEventListener('input', renderGames);
+    categoryFilter.addEventListener('change', renderGames);
+    sortFilter.addEventListener('change', renderGames);
+
+    // ─── Executor Dragging ───
+    const dragHandle = document.getElementById('executorDragHandle');
+    dragHandle.addEventListener('mousedown', (e) => {
+      if (e.target.closest('button')) return;
+      const rect = executorWindow.getBoundingClientRect();
+      dragData = { offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top };
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', onDragEnd);
+      e.preventDefault();
+    });
+    function onDragMove(e) {
+      if (!dragData) return;
+      let left = e.clientX - dragData.offsetX;
+      let top = e.clientY - dragData.offsetY;
+      left = Math.max(0, Math.min(window.innerWidth - executorWindow.offsetWidth, left));
+      top = Math.max(0, Math.min(window.innerHeight - executorWindow.offsetHeight, top));
+      executorWindow.style.left = left + 'px';
+      executorWindow.style.top = top + 'px';
+      executorWindow.style.right = 'auto';
+    }
+    function onDragEnd() {
+      dragData = null;
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('mouseup', onDragEnd);
+    }
+
+    // ─── Guide ───
+    document.getElementById('btnGuide').addEventListener('click', () => guideModal.classList.add('open'));
+    document.getElementById('btnCloseGuide').addEventListener('click', () => guideModal.classList.remove('open'));
+    guideModal.addEventListener('click', (e) => { if (e.target === guideModal) guideModal.classList.remove('open'); });
+
+    // ─── Close overlay ───
+    gameOverlay.addEventListener('click', (e) => { if (e.target === gameOverlay) closeGame(); });
+
+    // ─── Init ───
+    loadGames();
+  </script>
+</body>
+</html>

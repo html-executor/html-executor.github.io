@@ -1,0 +1,17 @@
+{
+  "name": "html-executor",
+  "version": "1.0.0",
+  "main": "server.js",
+  "bin": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "pkg": {
+    "assets": [
+      "*.html",
+      "*.json",
+      "games/**/*",
+      "thumbnails/**/*"
+    ]
+  }
+}
