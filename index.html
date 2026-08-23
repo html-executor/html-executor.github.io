@@ -179,7 +179,18 @@
     .editor-pane, .preview-pane { display:flex; flex-direction:column; gap:8px; }
     .editor-pane textarea { flex:1; min-height:200px; }
     .preview-pane iframe { flex:1; border:1px solid var(--border); border-radius:var(--radius); background:white; }
-    .console-output { background:var(--executor-console-bg); color:var(--executor-console-text); font-family:monospace; font-size:12px; padding:8px; border-radius:var(--radius); min-height:80px; max-height:150px; overflow-y:auto; white-space:pre-wrap; }
+    .console-output, .console {
+      background: var(--executor-console-bg);
+      color: var(--executor-console-text);
+      font-family: monospace;
+      font-size: 12px;
+      padding: 8px;
+      border-radius: var(--radius);
+      min-height: 80px;
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
 
     /* ── Game Overlay ── */
     .game-overlay {
@@ -211,6 +222,36 @@
     .executor-tabs button.active { background:var(--bg); color:var(--text); font-weight:600; }
     .tab-content { display:none; }
     .tab-content.active { display:block; }
+    #premadeScriptsList button {
+      display:block; width:100%; margin-bottom:4px; text-align:left;
+    }
+
+    /* ── Profile Page ── */
+    .profile-item {
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:12px 16px;
+      margin-bottom:10px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+    .profile-item .info { flex:1; }
+    .dot-menu-container { position:relative; }
+    .dot-menu-btn {
+      border:none; background:transparent; font-size:18px; cursor:pointer; padding:0 8px;
+    }
+    .dot-dropdown {
+      position:absolute; right:0; top:100%; background:var(--panel); border:1px solid var(--border);
+      border-radius:var(--radius); box-shadow:var(--shadow); display:none; z-index:50; min-width:120px;
+    }
+    .dot-dropdown.open { display:block; }
+    .dot-dropdown button {
+      display:block; width:100%; text-align:left; background:transparent; border:none; padding:6px 12px; color:var(--text);
+    }
+    .dot-dropdown button:hover { background:var(--bg); }
 
     /* ── Modals ── */
     .modal { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:700; }
@@ -218,17 +259,18 @@
     .modal-box { background:var(--panel); border-radius:var(--radius); padding:24px; max-width:500px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.2); }
     .modal-box h3 { margin-bottom:8px; }
     .modal-box p { color:var(--muted); margin-bottom:16px; line-height:1.5; }
-    .modal-actions { display:flex; justify-content:flex-end; gap:8px; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
 
     /* ── Chat (per script) ── */
     .chat-container { display:flex; flex-direction:column; height:300px; }
-    .chat-messages { flex:1; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius); padding:8px; margin-bottom:8px; }
+    .chat-messages { flex:1; overflow-y:auto; border:1px solid var(--border); border-radius:var(--radius); padding:8px; margin-bottom:8px; display:flex; flex-direction:column; }
     .chat-message { margin-bottom:6px; }
     .chat-message .user { font-weight:600; }
-    .chat-message .time { font-size:10px; color:var(--muted); }
+    .chat-message .time { font-size:10px; color:var(--muted); margin-left:4px; }
+    .chat-message .mod-actions { display:inline-flex; gap:4px; margin-left:8px; }
+    .chat-message .mod-actions button { font-size:10px; padding:1px 4px; }
     .chat-input { display:flex; gap:8px; }
     .chat-input input { flex:1; }
-    .user-moderation { display:flex; gap:6px; }
   </style>
 </head>
 <body>
@@ -255,6 +297,7 @@
       <button data-page="library">Library</button>
       <button data-page="workshop">Workshop</button>
       <button data-page="create">Create / Test</button>
+      <button data-page="profile">Profile</button>
       <button data-page="admin" id="adminNavBtn" style="display:none;">Admin Panel</button>
     </nav>
 
@@ -323,6 +366,12 @@
             <div class="console-output" id="previewConsole">Ready</div>
           </div>
         </div>
+      </div>
+
+      <!-- Profile Page -->
+      <div class="page" id="page-profile">
+        <div class="page-header"><h1>My Profile</h1></div>
+        <div id="profileContent"></div>
       </div>
 
       <!-- Admin Page -->
@@ -432,6 +481,22 @@
     </div>
   </div>
 
+  <!-- Edit Game Modal -->
+  <div class="modal" id="editGameModal">
+    <div class="modal-box">
+      <h3>Edit Game</h3>
+      <input type="text" id="editGameTitle" placeholder="Title" />
+      <textarea id="editGameDescription" placeholder="Description"></textarea>
+      <input type="text" id="editGameCategory" placeholder="Category" />
+      <label>HTML Code</label>
+      <textarea id="editGameHTML" style="min-height:150px;"></textarea>
+      <div class="modal-actions">
+        <button id="btnEditGameCancel">Cancel</button>
+        <button id="btnEditGameSave" class="primary">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Script Detail Modal -->
   <div class="modal" id="scriptModal">
     <div class="modal-box" style="max-width:600px;">
@@ -475,7 +540,6 @@
 
   <!-- ========== MAIN APPLICATION LOGIC (FIREBASE) ========== -->
   <script type="module">
-    // ----- 1. IMPORT FIREBASE MODULES -----
     import { initializeApp } from "firebase/app";
     import { getAnalytics } from "firebase/analytics";
     import { 
@@ -497,10 +561,11 @@
       where,
       serverTimestamp,
       getDoc,
-      setDoc
+      setDoc,
+      orderBy
     } from "firebase/firestore";
 
-    // ----- 2. YOUR FIREBASE CONFIG -----
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyCyux8wAnKs_R8AKTICungUQUI0ZtawCco",
       authDomain: "html-executor-27274.firebaseapp.com",
@@ -511,14 +576,13 @@
       measurementId: "G-1RTMR7T1G2"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // ----- 3. APPLICATION STATE -----
-    let currentUser = null;          // { uid, email, username, role }
+    // Application state
+    let currentUser = null;
     let currentGame = null;
     let attachedWindow = null;
     let dragData = null;
@@ -527,8 +591,9 @@
     let allPendingGames = [];
     let allScripts = [];
     let allPendingScripts = [];
+    let liveObserver = null;
 
-    // ----- 4. DOM REFS -----
+    // DOM refs
     const gameGrid = document.getElementById('gameGrid');
     const libraryContent = document.getElementById('libraryContent');
     const workshopList = document.getElementById('workshopList');
@@ -540,7 +605,7 @@
     const chatMessages = document.getElementById('scriptChatMessages');
     const chatInput = document.getElementById('scriptChatInput');
 
-    // ----- 5. AUTHENTICATION (with Email + Username) -----
+    // Auth
     btnLogin.addEventListener('click', () => openAuthModal('login'));
     btnLogout.addEventListener('click', async () => {
       await signOut(auth);
@@ -558,13 +623,13 @@
         title.textContent = 'Login';
         submitBtn.textContent = 'Login';
         switchBtn.textContent = 'Register';
-        usernameField.style.display = 'none'; // hide username on login
+        usernameField.style.display = 'none';
         emailField.placeholder = 'Email';
       } else {
         title.textContent = 'Register';
         submitBtn.textContent = 'Register';
         switchBtn.textContent = 'Login';
-        usernameField.style.display = 'block'; // show username on register
+        usernameField.style.display = 'block';
         usernameField.placeholder = 'Choose a Username';
         emailField.placeholder = 'Email';
       }
@@ -587,22 +652,19 @@
 
       try {
         if (mode === 'register') {
-          // 1. Create Firebase Auth user
           const userCred = await createUserWithEmailAndPassword(auth, email, password);
           const uid = userCred.user.uid;
-
-          // 2. Store user profile in Firestore
           await setDoc(doc(db, 'users', uid), {
             username: username,
             email: email,
-            role: (email === 'vodlan.oskar@gmail.com') ? 'admin' : 'user', // 👈 YOUR ADMIN EMAIL
+            role: (email === 'vodlan.oskar@gmail.com') ? 'admin' : 'user',
+            banned: false,
+            muted: false,
             createdAt: serverTimestamp()
           });
-
           alert('Account created! You are now logged in.');
           document.getElementById('authModal').classList.remove('open');
         } else {
-          // Login
           await signInWithEmailAndPassword(auth, email, password);
           document.getElementById('authModal').classList.remove('open');
         }
@@ -611,10 +673,9 @@
       }
     }
 
-    // ----- 6. AUTH STATE (fetch username & role from Firestore) -----
+    // Auth state
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // Fetch user profile from Firestore
         let userData = null;
         try {
           const docSnap = await getDoc(doc(db, 'users', user.uid));
@@ -623,14 +684,11 @@
           }
         } catch (e) { console.warn('Could not fetch user doc', e); }
 
-        // Fallback / force admin for vodlan.oskar@gmail.com
         let role = userData?.role || 'user';
         let username = userData?.username || user.email.split('@')[0];
 
-        // 🔥 FORCE ADMIN FOR THIS EMAIL
         if (user.email === 'vodlan.oskar@gmail.com') {
           role = 'admin';
-          // Also update the Firestore doc to keep it in sync
           try {
             await setDoc(doc(db, 'users', user.uid), { 
               username: username, 
@@ -640,19 +698,25 @@
           } catch (e) { /* ignore */ }
         }
 
+        if (userData?.banned) {
+          alert('Your account has been banned.');
+          await signOut(auth);
+          return;
+        }
+
         currentUser = {
           uid: user.uid,
           email: user.email,
           username: username,
-          role: role
+          role: role,
+          muted: userData?.muted || false,
+          banned: false
         };
 
-        // Update UI
         userName.textContent = currentUser.username;
         btnLogin.style.display = 'none';
         btnLogout.style.display = 'block';
         adminNavBtn.style.display = (currentUser.role === 'admin') ? 'block' : 'none';
-
       } else {
         currentUser = null;
         userName.textContent = 'Guest';
@@ -661,14 +725,15 @@
         adminNavBtn.style.display = 'none';
         adminContent.innerHTML = '<p>Please log in to manage.</p>';
       }
-      // Re-render admin panel if visible
       if (document.getElementById('page-admin').classList.contains('active')) {
         renderAdmin();
       }
+      if (document.getElementById('page-profile').classList.contains('active')) {
+        renderProfile();
+      }
     });
 
-    // ----- 7. REALTIME FIRESTORE LISTENERS (games, scripts) -----
-    // Approved games
+    // Firestore listeners
     const gamesQuery = query(collection(db, 'games'), where('approved', '==', true));
     onSnapshot(gamesQuery, (snapshot) => {
       allGames = [];
@@ -677,15 +742,14 @@
       renderLibrary();
     });
 
-    // Pending games
     const pendingQuery = query(collection(db, 'games'), where('approved', '==', false));
     onSnapshot(pendingQuery, (snapshot) => {
       allPendingGames = [];
       snapshot.forEach(doc => allPendingGames.push({ id: doc.id, ...doc.data() }));
       if (currentUser?.role === 'admin') renderAdmin();
+      if (document.getElementById('page-profile').classList.contains('active')) renderProfile();
     });
 
-    // Approved scripts
     const scriptsQuery = query(collection(db, 'scripts'), where('approved', '==', true));
     onSnapshot(scriptsQuery, (snapshot) => {
       allScripts = [];
@@ -693,7 +757,6 @@
       renderWorkshop();
     });
 
-    // Pending scripts
     const pendingScriptsQuery = query(collection(db, 'scripts'), where('approved', '==', false));
     onSnapshot(pendingScriptsQuery, (snapshot) => {
       allPendingScripts = [];
@@ -701,7 +764,7 @@
       if (currentUser?.role === 'admin') renderAdmin();
     });
 
-    // ----- 8. RENDER FUNCTIONS (games, library, workshop, admin) -----
+    // Render functions
     function renderGames() {
       const search = document.getElementById('searchInput').value.toLowerCase();
       const category = document.getElementById('categoryFilter').value;
@@ -714,7 +777,7 @@
         return matchSearch && matchCat;
       });
       if (sort === 'popular') filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
-      else if (sort === 'newest') filtered.sort((a, b) => b.createdAt?.toMillis?.() - a.createdAt?.toMillis?.() || 0);
+      else if (sort === 'newest') filtered.sort((a, b) => (b.createdAt?.toMillis?.() || 0) - (a.createdAt?.toMillis?.() || 0));
       else if (sort === 'title') filtered.sort((a, b) => a.title.localeCompare(b.title));
 
       gameGrid.innerHTML = '';
@@ -812,14 +875,131 @@
       adminContent.innerHTML = html;
     }
 
-    // Expose admin functions to global
     window.approveGame = async (id) => { await updateDoc(doc(db, 'games', id), { approved: true }); };
     window.deleteGame = async (id) => { await deleteDoc(doc(db, 'games', id)); };
     window.previewGame = (id) => { const game = allPendingGames.find(g => g.id === id); if (game) launchGame(game); };
     window.approveScript = async (id) => { await updateDoc(doc(db, 'scripts', id), { approved: true }); };
     window.deleteScript = async (id) => { await deleteDoc(doc(db, 'scripts', id)); };
 
-    // ----- 9. GAME LAUNCH & EXECUTOR (same as before) -----
+    // Profile rendering
+    function renderProfile() {
+      const profileContent = document.getElementById('profileContent');
+      if (!currentUser) {
+        profileContent.innerHTML = '<p>Please login to view your profile.</p>';
+        return;
+      }
+
+      const userGames = [...allGames, ...allPendingGames].filter(g => 
+        g.authorId === currentUser.uid || g.author === currentUser.username
+      );
+
+      if (userGames.length === 0) {
+        profileContent.innerHTML = '<p style="color:var(--muted);">You haven\'t created any games yet.</p>';
+        return;
+      }
+
+      let html = '';
+      userGames.forEach(game => {
+        const status = game.approved ? 'Approved' : 'Pending';
+        html += `
+          <div class="profile-item" data-id="${game.id}">
+            <div class="info">
+              <strong>${game.title}</strong>
+              <div style="font-size:12px; color:var(--muted);">${game.category || 'Uncategorized'} • ${status}</div>
+            </div>
+            <div class="dot-menu-container">
+              <button class="dot-menu-btn" data-game-id="${game.id}">⋮</button>
+              <div class="dot-dropdown" id="dropdown-${game.id}">
+                <button class="edit-game" data-game-id="${game.id}">Edit Details</button>
+                <button class="update-html" data-game-id="${game.id}">Update HTML</button>
+                <button class="delete-game" data-game-id="${game.id}" style="color:var(--danger);">Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      profileContent.innerHTML = html;
+
+      // Attach event listeners for dot menus
+      document.querySelectorAll('.dot-menu-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.gameId;
+          const dropdown = document.getElementById(`dropdown-${id}`);
+          document.querySelectorAll('.dot-dropdown').forEach(d => { if (d !== dropdown) d.classList.remove('open'); });
+          dropdown.classList.toggle('open');
+        });
+      });
+
+      document.querySelectorAll('.edit-game').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.gameId;
+          const game = [...allGames, ...allPendingGames].find(g => g.id === id);
+          if (game) openEditGameModal(game);
+          document.querySelectorAll('.dot-dropdown').forEach(d => d.classList.remove('open'));
+        });
+      });
+
+      document.querySelectorAll('.update-html').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.gameId;
+          const game = [...allGames, ...allPendingGames].find(g => g.id === id);
+          if (game) openEditGameModal(game, true);
+          document.querySelectorAll('.dot-dropdown').forEach(d => d.classList.remove('open'));
+        });
+      });
+
+      document.querySelectorAll('.delete-game').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.gameId;
+          if (confirm('Delete this game?')) {
+            await deleteDoc(doc(db, 'games', id));
+          }
+          document.querySelectorAll('.dot-dropdown').forEach(d => d.classList.remove('open'));
+        });
+      });
+    }
+
+    function openEditGameModal(game, focusHTML = false) {
+      document.getElementById('editGameTitle').value = game.title || '';
+      document.getElementById('editGameDescription').value = game.description || '';
+      document.getElementById('editGameCategory').value = game.category || '';
+      document.getElementById('editGameHTML').value = game.htmlContent || '';
+      document.getElementById('editGameModal').classList.add('open');
+      if (focusHTML) {
+        document.getElementById('editGameHTML').focus();
+      }
+      window.currentEditingGameId = game.id;
+    }
+
+    document.getElementById('btnEditGameCancel').addEventListener('click', () => {
+      document.getElementById('editGameModal').classList.remove('open');
+      window.currentEditingGameId = null;
+    });
+
+    document.getElementById('btnEditGameSave').addEventListener('click', async () => {
+      if (!window.currentEditingGameId) return;
+      const title = document.getElementById('editGameTitle').value.trim();
+      const description = document.getElementById('editGameDescription').value.trim();
+      const category = document.getElementById('editGameCategory').value.trim();
+      const htmlContent = document.getElementById('editGameHTML').value.trim();
+      if (!title || !htmlContent) return alert('Title and HTML code are required.');
+
+      await updateDoc(doc(db, 'games', window.currentEditingGameId), {
+        title,
+        description,
+        category,
+        htmlContent
+      });
+      alert('Game updated successfully.');
+      document.getElementById('editGameModal').classList.remove('open');
+      window.currentEditingGameId = null;
+    });
+
+    // Game launch & executor
     function launchGame(game) {
       currentGame = game;
       document.getElementById('gameTitle').textContent = game.title;
@@ -847,15 +1027,19 @@
       document.getElementById('executorStatus').textContent = 'Not attached';
       document.getElementById('console').innerHTML = 'Ready';
     }
+
     function toggleExecutor(open) {
       const win = document.getElementById('executorWindow');
       if (open === undefined) open = !win.classList.contains('open');
       if (open) win.classList.add('open'); else win.classList.remove('open');
     }
+
+    // Event listeners for game overlay and executor
     document.getElementById('btnToggleExecutor').addEventListener('click', () => toggleExecutor());
+    document.getElementById('btnCloseGame').addEventListener('click', closeGame);
+    document.getElementById('btnCloseGameFromExec').addEventListener('click', closeGame);
     document.getElementById('btnCloseExecutor').addEventListener('click', () => toggleExecutor(false));
     document.getElementById('btnMinimize').addEventListener('click', () => toggleExecutor(false));
-    document.getElementById('btnCloseGameFromExec').addEventListener('click', closeGame);
 
     document.getElementById('btnAttach').addEventListener('click', () => {
       if (!currentGame) return alert('No game running.');
@@ -910,6 +1094,7 @@
       }
       return funcs;
     }
+
     document.getElementById('btnFindFunctions').addEventListener('click', () => {
       if (!attachedWindow) return alert('Attach first.');
       const funcs = findFunctions(attachedWindow);
@@ -925,8 +1110,18 @@
     });
 
     function generatePremadeScripts(targetWindow) {
-      const scripts = [];
-      const vars = ['coins','health','score','lives','money'];
+      const scripts = [
+        { title: 'Set coins to 999999', code: 'coins=999999;' },
+        { title: 'Add 1000 coins', code: 'coins+=1000;' },
+        { title: 'Set health to 999999', code: 'health=999999;' },
+        { title: 'Set score to 999999', code: 'score=999999;' },
+        { title: 'Set lives to 99', code: 'lives=99;' },
+        { title: 'Enable god mode (try)', code: 'godmode=true;' },
+        { title: 'Unlock all levels (try)', code: 'unlockedLevels=999;' }
+      ];
+
+      // Detect existing variables
+      const vars = ['coins','health','score','lives','money','gold','gems'];
       vars.forEach(v => {
         try {
           if (typeof targetWindow[v] === 'number') {
@@ -935,6 +1130,7 @@
           }
         } catch(e) {}
       });
+
       const list = document.getElementById('premadeScriptsList');
       list.innerHTML = '';
       scripts.forEach(s => {
@@ -949,7 +1145,28 @@
 
     function setupLiveSpy(targetWindow) {
       document.getElementById('liveConsole').innerHTML = 'Live spy active.';
+      if (liveObserver) liveObserver.disconnect();
+
+      if (window.MutationObserver && targetWindow.document) {
+        liveObserver = new MutationObserver(mutations => {
+          if (!document.getElementById('spyWatchDOM').checked) return;
+          mutations.forEach(m => {
+            const liveConsole = document.getElementById('liveConsole');
+            liveConsole.innerHTML += `\n[Mutation] ${m.type} on ${m.target.nodeName}`;
+            liveConsole.scrollTop = liveConsole.scrollHeight;
+          });
+        });
+        liveObserver.observe(targetWindow.document.documentElement, {
+          childList: true,
+          subtree: true,
+          attributes: true
+        });
+      }
     }
+
+    document.getElementById('btnClearLive').addEventListener('click', () => {
+      document.getElementById('liveConsole').innerHTML = 'Live spy cleared.';
+    });
 
     document.getElementById('btnScanSecrets').addEventListener('click', () => {
       document.getElementById('secretsConsole').innerHTML = 'Scanning...';
@@ -959,12 +1176,13 @@
         document.getElementById('secretsConsole').innerHTML = 'Found codes: ' + codes.join(', ');
       }
     });
+
     document.getElementById('btnCopyHTML').addEventListener('click', () => {
       const html = document.getElementById('gameHTMLView').value;
       if (html) navigator.clipboard.writeText(html);
     });
 
-    // ----- 10. UPLOAD GAME -----
+    // Upload game
     document.getElementById('btnUploadGame').addEventListener('click', () => {
       if (!currentUser) return alert('Login required.');
       document.getElementById('uploadModal').classList.add('open');
@@ -999,6 +1217,7 @@
           approved: false,
           views: 0,
           author: currentUser.username || currentUser.email,
+          authorId: currentUser.uid,
           createdAt: serverTimestamp()
         });
         alert('Submitted for review.');
@@ -1007,7 +1226,7 @@
       reader.readAsText(htmlFile);
     });
 
-    // ----- 11. WORKSHOP: ADD SCRIPT -----
+    // Workshop: add script
     document.getElementById('btnAddScript').addEventListener('click', async () => {
       if (!currentUser) return alert('Login required.');
       const title = prompt('Script title:');
@@ -1017,6 +1236,7 @@
           title,
           code,
           author: currentUser.username || currentUser.email,
+          authorId: currentUser.uid,
           approved: false,
           createdAt: serverTimestamp()
         });
@@ -1024,7 +1244,7 @@
       }
     });
 
-    // ----- 12. SCRIPT MODAL & CHAT (Firestore subcollection) -----
+    // Script modal & chat
     async function openScriptModal(script) {
       selectedScriptId = script.id;
       document.getElementById('scriptModalTitle').textContent = script.title;
@@ -1036,17 +1256,53 @@
     }
 
     function loadScriptChat(scriptId) {
-      const q = query(collection(db, 'scripts', scriptId, 'chats'));
+      const q = query(collection(db, 'scripts', scriptId, 'chats'), orderBy('timestamp', 'desc'));
       onSnapshot(q, (snapshot) => {
         chatMessages.innerHTML = '';
         snapshot.forEach(doc => {
           const msg = doc.data();
           const div = document.createElement('div');
           div.className = 'chat-message';
-          div.innerHTML = `<span class="user">${msg.username}:</span> <span>${msg.text}</span> <span class="time">${new Date(msg.timestamp?.toMillis?.() || Date.now()).toLocaleTimeString()}</span>`;
+          let modHtml = '';
+          if (currentUser?.role === 'admin') {
+            const targetId = msg.userId || '';
+            const targetUsername = msg.username || 'unknown';
+            modHtml = `<span class="mod-actions">
+              <button class="mute-user" data-user-id="${targetId}" data-username="${targetUsername}">Mute</button>
+              <button class="ban-user" data-user-id="${targetId}" data-username="${targetUsername}">Ban</button>
+              <button class="delete-msg" data-msg-id="${doc.id}">Delete</button>
+            </span>`;
+          }
+          div.innerHTML = `<span class="user">${msg.username}:</span> <span>${msg.text}</span> <span class="time">${new Date(msg.timestamp?.toMillis?.() || Date.now()).toLocaleTimeString()}</span>${modHtml}`;
           chatMessages.appendChild(div);
         });
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Newest first: scroll to top
+        chatMessages.scrollTop = 0;
+
+        // Attach moderation listeners
+        document.querySelectorAll('.delete-msg').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (confirm('Delete this message?')) {
+              await deleteDoc(doc(db, 'scripts', scriptId, 'chats', btn.dataset.msgId));
+            }
+          });
+        });
+        document.querySelectorAll('.mute-user').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!btn.dataset.userId) return alert('User ID missing.');
+            if (btn.dataset.userId === currentUser.uid) return alert('You cannot mute yourself.');
+            await setDoc(doc(db, 'users', btn.dataset.userId), { muted: true }, { merge: true });
+            alert(`${btn.dataset.username} has been muted.`);
+          });
+        });
+        document.querySelectorAll('.ban-user').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            if (!btn.dataset.userId) return alert('User ID missing.');
+            if (btn.dataset.userId === currentUser.uid) return alert('You cannot ban yourself.');
+            await setDoc(doc(db, 'users', btn.dataset.userId), { banned: true }, { merge: true });
+            alert(`${btn.dataset.username} has been banned.`);
+          });
+        });
       });
     }
 
@@ -1054,15 +1310,31 @@
       if (!currentUser) return alert('Login required.');
       const text = chatInput.value.trim();
       if (!text || !selectedScriptId) return;
+
+      // Check if user is banned or muted (fresh check)
+      const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (data.banned) {
+          alert('You are banned from chatting.');
+          return;
+        }
+        if (data.muted) {
+          alert('You are muted.');
+          return;
+        }
+      }
+
       await addDoc(collection(db, 'scripts', selectedScriptId, 'chats'), {
         username: currentUser.username || currentUser.email,
+        userId: currentUser.uid,
         text,
         timestamp: serverTimestamp()
       });
       chatInput.value = '';
     });
 
-    // ----- 13. CREATE/TEST PAGE -----
+    // Create/Test page
     const htmlEditor = document.getElementById('htmlEditor');
     const previewFrame = document.getElementById('previewFrame');
     htmlEditor.addEventListener('input', () => {
@@ -1112,12 +1384,13 @@
         approved: false,
         views: 0,
         author: currentUser.username || currentUser.email,
+        authorId: currentUser.uid,
         createdAt: serverTimestamp()
       });
       alert('Submitted for review.');
     });
 
-    // ----- 14. NAVIGATION -----
+    // Navigation
     document.querySelectorAll('.sidebar button').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.sidebar button').forEach(b => b.classList.remove('active'));
@@ -1127,10 +1400,17 @@
         document.getElementById(`page-${page}`).classList.add('active');
         if (page === 'admin') renderAdmin();
         if (page === 'workshop') renderWorkshop();
+        if (page === 'profile') renderProfile();
       });
     });
 
-    // ----- 15. GUIDE & DARK MODE -----
+    // Search/filter listeners
+    document.getElementById('searchInput').addEventListener('input', renderGames);
+    document.getElementById('categoryFilter').addEventListener('change', renderGames);
+    document.getElementById('sortFilter').addEventListener('change', renderGames);
+    document.getElementById('workshopSearch').addEventListener('input', renderWorkshop);
+
+    // Guide & dark mode
     document.getElementById('btnGuide').addEventListener('click', () => document.getElementById('guideModal').classList.add('open'));
     document.getElementById('btnCloseGuide').addEventListener('click', () => document.getElementById('guideModal').classList.remove('open'));
 
@@ -1146,7 +1426,7 @@
     });
     applyDarkMode();
 
-    // ----- 16. EXECUTOR DRAG -----
+    // Executor drag
     const dragHandle = document.getElementById('executorDragHandle');
     dragHandle.addEventListener('mousedown', (e) => {
       if (e.target.closest('button')) return;
